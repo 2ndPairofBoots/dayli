@@ -1,16 +1,27 @@
-# React + Vite
+# Dayli — Manifold Trading Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A quantitative trading dashboard and automated bot for [Manifold Markets](https://manifold.markets).
 
-Currently, two official plugins are available:
+**Live:** https://2ndPairofBoots.github.io/dayli
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
+- Real-time portfolio tracking via Manifold API
+- P&L history, open positions with cost basis, win rate
+- Manual markets browser with Kelly criterion sizing and CPMM-1 slippage modeling
+- 5-strategy automated trading bot (Calibration, Extreme Fade, New Market Sniper, Attrition, Whaler)
+- WebSocket live feed for whale bet detection
+- Confidence-weighted edge shrinkage, free-capital Kelly, category concentration limits
+- Dynamic base rates calibrated from your own resolved bet history
+- Server-side dry run via Manifold's dryRun API param
 
-## React Compiler
+## Setup
+```bash
+npm install
+npm run dev       # local dev
+npm run deploy    # deploy to GitHub Pages
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Add your Manifold API key in the UI — session only, never stored.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Stack
+React · Recharts · Manifold v0 REST + WebSocket API · Vite · GitHub Pages
