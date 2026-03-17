@@ -1,6 +1,6 @@
 # Dayli — Manifold Trading Dashboard
 
-A quantitative trading dashboard and automated bot for [Manifold Markets](https://manifold.markets).
+A quantitative trading dashboard and automated bot for [Manifold Markets]([https://manifold.markets](https://manifold.markets?r=Mm5kUGFpcm9mQm9vdHM)).
 
 **Live:** https://2ndPairofBoots.github.io/dayli
 
