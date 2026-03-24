@@ -1,0 +1,38 @@
+# Python Dependencies for Dayli Trading Bot
+
+# HTTP & API
+aiohttp>=3.8.0           # Async HTTP client
+requests>=2.31.0         # HTTP client
+websockets>=11.0         # WebSocket client (optional, for upgrade)
+
+# Data & Math
+numpy>=1.24.0            # Numerical computing (optional)
+pandas>=2.0.0            # Data manipulation (optional)
+scipy>=1.10.0            # Scientific computing (optional)
+
+# Configuration & Environment
+python-dotenv>=1.0.0     # Load environment variables
+pydantic>=2.0.0          # Data validation
+
+# Async & Scheduling
+asyncio-contextmanager>=1.0.0  # Context managers for async
+APScheduler>=3.10.0      # Task scheduling
+
+# Logging & Monitoring
+python-json-logger>=2.0.0     # JSON logging
+sentry-sdk>=1.25.0            # Error tracking (optional)
+
+# Database (optional)
+supabase>=2.0.0          # Supabase client
+sqlalchemy>=2.0.0        # ORM
+
+# Development & Testing
+pytest>=7.4.0            # Testing framework
+pytest-asyncio>=0.21.0   # Async testing
+pytest-cov>=4.1.0        # Coverage reports
+black>=23.9.0            # Code formatting
+flake8>=6.1.0            # Linting
+mypy>=1.5.0              # Type checking
+
+# Utility
+python-dateutil>=2.8.2   # Date utilities

@@ -1,0 +1,37 @@
+{
+  "name": "dayli-trading-bot",
+  "version": "0.1.0",
+  "description": "AI-powered trading bot for Manifold Markets",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css}",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "backend": "python backend/main.py",
+    "backend:dev": "python -m uvicorn backend.main:app --reload --port 8000"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "axios": "^1.4.0",
+    "recharts": "^2.10.0",
+    "tailwindcss": "^3.3.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.4.0",
+    "vitest": "^0.34.0",
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "prettier": "^3.0.0",
+    "typescript": "^5.2.0"
+  }
+}

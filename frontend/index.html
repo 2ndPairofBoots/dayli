@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dayli Bot Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Dayli Trading Bot</p>
+      <h1>Operations Dashboard</h1>
+    </div>
+    <div class="topbar-actions">
+      <button id="refreshBtn" class="btn">Refresh</button>
+      <p id="lastUpdated" class="muted">Last updated: -</p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card metrics">
+      <h2>Runtime Snapshot</h2>
+      <div class="metrics-grid">
+        <div class="metric">
+          <p class="metric-label">Latest Balance</p>
+          <p id="balanceValue" class="metric-value">-</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Latest PnL</p>
+          <p id="pnlValue" class="metric-value">-</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Recent Sim Bets (50)</p>
+          <p id="simBetsValue" class="metric-value">-</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">Recent Errors (50)</p>
+          <p id="errorsValue" class="metric-value">-</p>
+        </div>
+      </div>
+      <p id="statusText" class="status">Status: loading...</p>
+    </section>
+
+    <section class="card">
+      <h2>Recent Bets</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Market</th>
+              <th>Side</th>
+              <th>Size</th>
+              <th>Prob</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="betsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card two-col">
+      <div>
+        <h2>Recent Errors</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="errorsTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2>Recent Strategy Decisions</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Market</th>
+                <th>Decision</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="strategyTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
