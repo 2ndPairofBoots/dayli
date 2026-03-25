@@ -13,18 +13,39 @@
   <div class="bg-glow bg-glow-1"></div>
   <div class="bg-glow bg-glow-2"></div>
 
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">Dayli Trading Bot</p>
-      <h1>Operations Dashboard</h1>
+  <header class="topbar shell">
+    <div class="brand-row">
+      <div>
+        <p class="eyebrow">Dayli</p>
+        <h1>Bot Dashboard</h1>
+      </div>
+      <nav class="nav-tabs" aria-label="Primary">
+        <span class="tab active">Dashboard</span>
+        <span class="tab">Markets</span>
+        <span class="tab">Portfolio</span>
+      </nav>
     </div>
-    <div class="topbar-actions">
-      <button id="refreshBtn" class="btn">Refresh</button>
-      <p id="lastUpdated" class="muted">Last updated: -</p>
+    <div class="account-chip" id="accountChip">
+      <div class="avatar">A</div>
+      <div>
+        <p class="account-name" id="accountName">2ndPairofBoots</p>
+        <p class="account-sub">Manifold account</p>
+      </div>
     </div>
   </header>
 
-  <main class="layout">
+  <main class="layout shell">
+    <section class="toolbar card">
+      <div>
+        <h2>Control</h2>
+        <p class="muted">Refresh dashboard and monitor runtime state.</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshBtn" class="btn">Refresh</button>
+        <p id="lastUpdated" class="muted">Last updated: -</p>
+      </div>
+    </section>
+
     <section class="card metrics">
       <h2>Runtime Snapshot</h2>
       <div class="metrics-grid">

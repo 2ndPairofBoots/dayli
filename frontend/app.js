@@ -87,6 +87,11 @@ function decisionBadge(decision) {
   return `<span class="badge ${klass}">${decision}</span>`;
 }
 
+function inferAccountName(rows) {
+  if (!rows || !rows.length) return "2ndPairofBoots";
+  return "2ndPairofBoots";
+}
+
 async function loadDashboard() {
   qs("statusText").textContent = "Status: loading logs...";
 
@@ -104,6 +109,7 @@ async function loadDashboard() {
     qs("pnlValue").textContent = fmtNum(latestPortfolio.pnl);
     qs("simBetsValue").textContent = String(bets.slice(-50).length);
     qs("errorsValue").textContent = String(errors.slice(-50).length);
+    qs("accountName").textContent = inferAccountName(bets);
 
     renderRows(
       "betsTable",

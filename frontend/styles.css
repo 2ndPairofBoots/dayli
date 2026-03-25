@@ -51,13 +51,78 @@ body {
 }
 
 .topbar {
-  max-width: 1200px;
   margin: 24px auto 14px;
-  padding: 0 16px;
   display: flex;
   justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.shell {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 16px;
+}
+
+.brand-row {
+  display: flex;
   gap: 16px;
-  align-items: flex-end;
+  align-items: end;
+}
+
+.nav-tabs {
+  display: inline-flex;
+  gap: 8px;
+  transform: translateY(-2px);
+}
+
+.tab {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.tab.active {
+  color: #062134;
+  background: var(--brand);
+  border-color: var(--brand);
+  font-weight: 700;
+}
+
+.account-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #4fd2ff, #1ca0e8);
+  color: #062538;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.account-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.account-sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .eyebrow {
@@ -103,11 +168,16 @@ h2 {
 }
 
 .layout {
-  max-width: 1200px;
   margin: 0 auto 24px;
-  padding: 0 16px;
   display: grid;
   gap: 14px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .card {
@@ -211,5 +281,22 @@ tr:last-child td {
 @media (min-width: 920px) {
   .two-col {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .brand-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
