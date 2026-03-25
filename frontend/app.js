@@ -12,6 +12,7 @@ const ACCOUNT_STORAGE_KEY = "dayli_account";
 const MANIFOLD_BASE_URL = "https://api.manifold.markets";
 
 let lastMarkets = [];
+let lastHoldings = [];
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -66,14 +67,17 @@ function updateAccountHeader(account) {
 
 function clearDataViews() {
   qs("balanceValue").textContent = "-";
+  qs("investedValue").textContent = "-";
   qs("pnlValue").textContent = "-";
-  qs("simBetsValue").textContent = "-";
-  qs("errorsValue").textContent = "-";
+  qs("openHoldingsValue").textContent = "-";
   qs("lastUpdated").textContent = "Last updated: -";
   renderRows("betsTable", [], () => "");
   renderRows("errorsTable", [], () => "");
   renderRows("strategyTable", [], () => "");
+  renderRows("holdingsTable", [], () => "");
   renderRows("marketsTable", [], () => "");
+  qs("holdingsStatusText").textContent = "Holdings: connect API to load data";
+  drawPortfolioChart([]);
   showMarketRaw(-1);
 }
 
@@ -91,7 +95,7 @@ async function loadConnectedSnapshot(apiKey) {
   const me = await response.json();
   const bal = Number(me.balance ?? 0);
   if (!Number.isNaN(bal) && bal > 0) {
-    qs("balanceValue").textContent = fmtNum(bal, 2);
+    qs("balanceValue").textContent = formatMana(bal);
   }
   return me;
 }
@@ -100,8 +104,157 @@ async function loadAllData(apiKey) {
   await Promise.all([
     loadDashboard(),
     loadMarketDatapoints(),
+    loadCurrentHoldings(apiKey),
     apiKey ? loadConnectedSnapshot(apiKey) : Promise.resolve(),
   ]);
+}
+
+function formatMana(value) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return "-";
+  return n.toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+  });
+}
+
+function parseNum(...values) {
+  for (const val of values) {
+    const n = Number(val);
+    if (!Number.isNaN(n)) return n;
+  }
+  return 0;
+}
+
+function extractHoldings(data) {
+  const arrays = [];
+  if (Array.isArray(data)) arrays.push(data);
+  if (Array.isArray(data?.investments)) arrays.push(data.investments);
+  if (Array.isArray(data?.positions)) arrays.push(data.positions);
+  if (Array.isArray(data?.holdings)) arrays.push(data.holdings);
+  if (Array.isArray(data?.contracts)) arrays.push(data.contracts);
+  if (Array.isArray(data?.data?.investments)) arrays.push(data.data.investments);
+
+  const source = arrays.find((arr) => arr.length > 0) || [];
+  return source.map((row) => {
+    const marketQuestion = row.question || row.contractQuestion || row.title || row.contractId || "Unknown market";
+    const outcome = row.outcome || row.answer || row.position || "-";
+    const shares = parseNum(row.shares, row.totalShares, row.numberShares, row.amount);
+    const avgPrice = parseNum(row.averagePrice, row.avgPrice, row.avgCost);
+    const value = parseNum(row.currentValue, row.value, row.notionalValue, shares * avgPrice);
+    const pnl = parseNum(row.profit, row.pnl, row.unrealizedPnl, value - shares * avgPrice);
+
+    return {
+      marketQuestion,
+      outcome,
+      shares,
+      avgPrice,
+      value,
+      pnl,
+    };
+  });
+}
+
+async function loadCurrentHoldings(apiKey) {
+  const status = qs("holdingsStatusText");
+  if (status) status.textContent = "Holdings: loading...";
+
+  const endpoints = [
+    `${MANIFOLD_BASE_URL}/v0/portfolio`,
+  ];
+
+  try {
+    let payload = null;
+    for (const url of endpoints) {
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Key ${apiKey}`,
+        },
+      });
+      if (res.ok) {
+        payload = await res.json();
+        break;
+      }
+    }
+
+    if (!payload) {
+      throw new Error("portfolio endpoint unavailable");
+    }
+
+    lastHoldings = extractHoldings(payload)
+      .filter((h) => h.shares > 0)
+      .sort((a, b) => b.value - a.value);
+
+    renderRows(
+      "holdingsTable",
+      lastHoldings,
+      (h) => `<tr>
+        <td>${escapeHtml(short(h.marketQuestion, 72))}</td>
+        <td>${escapeHtml(h.outcome)}</td>
+        <td>${formatMana(h.shares)}</td>
+        <td>${formatMana(h.avgPrice)}</td>
+        <td>${formatMana(h.value)}</td>
+        <td>${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</td>
+      </tr>`
+    );
+
+    qs("openHoldingsValue").textContent = String(lastHoldings.length);
+    if (status) status.textContent = `Holdings: loaded ${lastHoldings.length} open trades.`;
+  } catch (error) {
+    lastHoldings = [];
+    renderRows("holdingsTable", [], () => "");
+    qs("openHoldingsValue").textContent = "0";
+    if (status) status.textContent = `Holdings: failed (${error.message})`;
+  }
+}
+
+function buildLinePath(points) {
+  if (!points.length) return "";
+  return points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+    .join(" ");
+}
+
+function drawPortfolioChart(portfolioRows) {
+  const line = qs("chartLine");
+  const fill = qs("chartFill");
+  if (!line || !fill) return;
+
+  const rows = portfolioRows.slice(-120);
+  const series = rows
+    .map((r) => {
+      const balance = parseNum(r.balance);
+      const invested = parseNum(r.invested);
+      return balance + invested;
+    })
+    .filter((v) => !Number.isNaN(v));
+
+  if (series.length < 2) {
+    line.setAttribute("d", "");
+    fill.setAttribute("d", "");
+    return;
+  }
+
+  const width = 1000;
+  const height = 240;
+  const padX = 18;
+  const padY = 20;
+  const min = Math.min(...series);
+  const max = Math.max(...series);
+  const span = Math.max(1, max - min);
+
+  const points = series.map((v, i) => {
+    const x = padX + (i * (width - padX * 2)) / (series.length - 1);
+    const y = height - padY - ((v - min) / span) * (height - padY * 2);
+    return { x, y };
+  });
+
+  const linePath = buildLinePath(points);
+  const fillPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${
+    (height - padY).toFixed(2)
+  } L ${points[0].x.toFixed(2)} ${(height - padY).toFixed(2)} Z`;
+
+  line.setAttribute("d", linePath);
+  fill.setAttribute("d", fillPath);
 }
 
 async function verifyManifoldApiKey(apiKey) {
@@ -350,20 +503,30 @@ async function loadDashboard() {
   qs("statusText").textContent = "Status: loading logs...";
 
   try {
+    const safeRead = async (path) => {
+      try {
+        return await readCsv(path);
+      } catch {
+        return [];
+      }
+    };
+
     const [bets, errors, portfolio, strategy] = await Promise.all([
-      readCsv(paths.bets),
-      readCsv(paths.errors),
-      readCsv(paths.portfolio),
-      readCsv(paths.strategy),
+      safeRead(paths.bets),
+      safeRead(paths.errors),
+      safeRead(paths.portfolio),
+      safeRead(paths.strategy),
     ]);
 
     const latestPortfolio = portfolio[portfolio.length - 1] || {};
 
-    qs("balanceValue").textContent = fmtNum(latestPortfolio.balance);
-    qs("pnlValue").textContent = fmtNum(latestPortfolio.pnl);
-    qs("simBetsValue").textContent = String(bets.slice(-50).length);
-    qs("errorsValue").textContent = String(errors.slice(-50).length);
+    if (latestPortfolio.balance != null && latestPortfolio.balance !== "") {
+      qs("balanceValue").textContent = formatMana(latestPortfolio.balance);
+    }
+    qs("investedValue").textContent = formatMana(latestPortfolio.invested);
+    qs("pnlValue").textContent = formatMana(latestPortfolio.pnl);
     qs("accountName").textContent = inferAccountName(bets);
+    drawPortfolioChart(portfolio);
 
     renderRows(
       "betsTable",
@@ -401,7 +564,7 @@ async function loadDashboard() {
 
     const now = new Date();
     qs("lastUpdated").textContent = `Last updated: ${now.toLocaleString()}`;
-    qs("statusText").textContent = "Status: online (loaded CSV logs from repo)";
+    qs("statusText").textContent = "Status: portfolio and trade data loaded";
   } catch (err) {
     qs("statusText").textContent = `Status: failed (${err.message})`;
   }

@@ -226,6 +226,31 @@ h2 {
   line-height: 1.5;
 }
 
+.chart-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0f151e;
+  overflow: hidden;
+}
+
+#portfolioChart {
+  width: 100%;
+  height: 220px;
+  display: block;
+}
+
+.chart-line {
+  fill: none;
+  stroke: #8f6dff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-fill {
+  fill: rgba(143, 109, 255, 0.2);
+}
+
 .market-row {
   cursor: pointer;
 }

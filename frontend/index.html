@@ -61,26 +61,53 @@
     </section>
 
     <section class="card metrics" id="dashboardSection">
-      <h2>Runtime Snapshot</h2>
+      <h2>Portfolio Snapshot</h2>
       <div class="metrics-grid">
         <div class="metric">
-          <p class="metric-label">Latest Balance</p>
+          <p class="metric-label">Balance</p>
           <p id="balanceValue" class="metric-value">-</p>
         </div>
         <div class="metric">
-          <p class="metric-label">Latest PnL</p>
+          <p class="metric-label">Invested</p>
+          <p id="investedValue" class="metric-value">-</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label">PnL</p>
           <p id="pnlValue" class="metric-value">-</p>
         </div>
         <div class="metric">
-          <p class="metric-label">Recent Sim Bets (50)</p>
-          <p id="simBetsValue" class="metric-value">-</p>
-        </div>
-        <div class="metric">
-          <p class="metric-label">Recent Errors (50)</p>
-          <p id="errorsValue" class="metric-value">-</p>
+          <p class="metric-label">Open Holdings</p>
+          <p id="openHoldingsValue" class="metric-value">-</p>
         </div>
       </div>
+      <h3 class="subhead">Net Worth Trend</h3>
+      <div class="chart-box">
+        <svg id="portfolioChart" viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Portfolio net worth chart">
+          <path id="chartFill" class="chart-fill" d=""></path>
+          <path id="chartLine" class="chart-line" d=""></path>
+        </svg>
+      </div>
       <p id="statusText" class="status">Status: loading...</p>
+    </section>
+
+    <section class="card">
+      <h2>Current Holdings</h2>
+      <p id="holdingsStatusText" class="status">Holdings: waiting for connection...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Outcome</th>
+              <th>Shares</th>
+              <th>Avg Price</th>
+              <th>Value</th>
+              <th>PnL</th>
+            </tr>
+          </thead>
+          <tbody id="holdingsTable"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="card" id="marketSection">
