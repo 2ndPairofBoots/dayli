@@ -6,23 +6,20 @@
   <title>Dayli Bot Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
-
   <header class="topbar shell">
     <div class="brand-row">
       <div>
-        <p class="eyebrow">Dayli</p>
+        <p class="eyebrow">Dayli Operations</p>
         <h1>Bot Dashboard</h1>
       </div>
       <nav class="nav-tabs" aria-label="Primary">
         <span class="tab active">Dashboard</span>
-        <span class="tab">Markets</span>
-        <span class="tab">Portfolio</span>
+        <span class="tab">Logs</span>
+        <span class="tab">Health</span>
       </nav>
     </div>
     <div class="account-chip" id="accountChip">
@@ -38,7 +35,7 @@
     <section class="toolbar card">
       <div>
         <h2>Control</h2>
-        <p class="muted">Refresh dashboard and monitor runtime state.</p>
+        <p class="muted">Refresh data and monitor runtime state from CSV snapshots.</p>
       </div>
       <div class="topbar-actions">
         <button id="refreshBtn" class="btn">Refresh</button>
