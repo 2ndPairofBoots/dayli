@@ -14,6 +14,12 @@ const MANIFOLD_BASE_URL = "https://api.manifold.markets";
 let lastMarkets = [];
 let lastHoldings = [];
 
+function setText(id, value) {
+  const el = qs(id);
+  if (!el) return;
+  el.textContent = value;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -66,17 +72,17 @@ function updateAccountHeader(account) {
 }
 
 function clearDataViews() {
-  qs("balanceValue").textContent = "-";
-  qs("investedValue").textContent = "-";
-  qs("pnlValue").textContent = "-";
-  qs("openHoldingsValue").textContent = "-";
-  qs("lastUpdated").textContent = "Last updated: -";
+  setText("balanceValue", "-");
+  setText("investedValue", "-");
+  setText("pnlValue", "-");
+  setText("openHoldingsValue", "-");
+  setText("lastUpdated", "Last updated: -");
   renderRows("betsTable", [], () => "");
   renderRows("errorsTable", [], () => "");
   renderRows("strategyTable", [], () => "");
   renderRows("holdingsTable", [], () => "");
   renderRows("marketsTable", [], () => "");
-  qs("holdingsStatusText").textContent = "Holdings: connect API to load data";
+  setText("holdingsStatusText", "Holdings: connect API to load data");
   drawPortfolioChart([]);
   showMarketRaw(-1);
 }
@@ -95,7 +101,7 @@ async function loadConnectedSnapshot(apiKey) {
   const me = await response.json();
   const bal = Number(me.balance ?? 0);
   if (!Number.isNaN(bal) && bal > 0) {
-    qs("balanceValue").textContent = formatMana(bal);
+    setText("balanceValue", formatMana(bal));
   }
   return me;
 }
@@ -104,9 +110,56 @@ async function loadAllData(apiKey) {
   await Promise.all([
     loadDashboard(),
     loadMarketDatapoints(),
+    loadRecentBetsFromApi(apiKey),
     loadCurrentHoldings(apiKey),
     apiKey ? loadConnectedSnapshot(apiKey) : Promise.resolve(),
   ]);
+}
+
+async function loadRecentBetsFromApi(apiKey) {
+  try {
+    const meRes = await fetch("https://api.manifold.markets/v0/me", {
+      headers: {
+        Authorization: `Key ${apiKey}`,
+      },
+    });
+
+    if (!meRes.ok) {
+      throw new Error(`user lookup failed (${meRes.status})`);
+    }
+
+    const me = await meRes.json();
+    const betsRes = await fetch(
+      `${MANIFOLD_BASE_URL}/v0/bets?userId=${encodeURIComponent(me.id)}&limit=50`,
+      {
+        headers: {
+          Authorization: `Key ${apiKey}`,
+        },
+      }
+    );
+
+    if (!betsRes.ok) {
+      throw new Error(`bets lookup failed (${betsRes.status})`);
+    }
+
+    const bets = await betsRes.json();
+    const rows = (Array.isArray(bets) ? bets : []).slice(0, 20);
+
+    renderRows(
+      "betsTable",
+      rows,
+      (r) => `<tr>
+        <td>${short(r.createdTime ? new Date(r.createdTime).toISOString() : "-", 19)}</td>
+        <td>${short(r.contractQuestion || r.question || r.contractId || "-", 46)}</td>
+        <td>${escapeHtml(r.outcome || "-")}</td>
+        <td>${formatMana(r.amount)}</td>
+        <td>${fmtNum(r.probBefore ?? r.probAfter ?? r.limitProb, 3)}</td>
+        <td>${short(r.answer || "Live Manifold API bet", 44)}</td>
+      </tr>`
+    );
+  } catch {
+    renderRows("betsTable", [], () => "");
+  }
 }
 
 function formatMana(value) {
@@ -315,8 +368,8 @@ function onDisconnect() {
   updateAccountHeader(null);
   setConnectionStatus("Connection: disconnected");
   clearDataViews();
-  qs("statusText").textContent = "Status: connect API to load data";
-  qs("marketStatusText").textContent = "Markets: connect API to load data";
+  setText("statusText", "Status: connect API to load data");
+  setText("marketStatusText", "Markets: connect API to load data");
   showAccountPanel(true);
 }
 
@@ -500,7 +553,7 @@ function inferAccountName(rows) {
 }
 
 async function loadDashboard() {
-  qs("statusText").textContent = "Status: loading logs...";
+  setText("statusText", "Status: loading portfolio history...");
 
   try {
     const safeRead = async (path) => {
@@ -511,8 +564,7 @@ async function loadDashboard() {
       }
     };
 
-    const [bets, errors, portfolio, strategy] = await Promise.all([
-      safeRead(paths.bets),
+    const [errors, portfolio, strategy] = await Promise.all([
       safeRead(paths.errors),
       safeRead(paths.portfolio),
       safeRead(paths.strategy),
@@ -521,25 +573,12 @@ async function loadDashboard() {
     const latestPortfolio = portfolio[portfolio.length - 1] || {};
 
     if (latestPortfolio.balance != null && latestPortfolio.balance !== "") {
-      qs("balanceValue").textContent = formatMana(latestPortfolio.balance);
+      setText("balanceValue", formatMana(latestPortfolio.balance));
     }
-    qs("investedValue").textContent = formatMana(latestPortfolio.invested);
-    qs("pnlValue").textContent = formatMana(latestPortfolio.pnl);
-    qs("accountName").textContent = inferAccountName(bets);
+    setText("investedValue", formatMana(latestPortfolio.invested));
+    setText("pnlValue", formatMana(latestPortfolio.pnl));
+    setText("accountName", inferAccountName([]));
     drawPortfolioChart(portfolio);
-
-    renderRows(
-      "betsTable",
-      bets.slice(-20).reverse(),
-      (r) => `<tr>
-        <td>${short(r.timestamp, 19)}</td>
-        <td>${short(r.market_question, 46)}</td>
-        <td>${r.outcome}</td>
-        <td>${r.size}</td>
-        <td>${fmtNum(r.probability, 3)}</td>
-        <td>${short(r.reason, 44)}</td>
-      </tr>`
-    );
 
     renderRows(
       "errorsTable",
@@ -563,10 +602,10 @@ async function loadDashboard() {
     );
 
     const now = new Date();
-    qs("lastUpdated").textContent = `Last updated: ${now.toLocaleString()}`;
-    qs("statusText").textContent = "Status: portfolio and trade data loaded";
+    setText("lastUpdated", `Last updated: ${now.toLocaleString()}`);
+    setText("statusText", "Status: portfolio and trade data loaded");
   } catch (err) {
-    qs("statusText").textContent = `Status: failed (${err.message})`;
+    setText("statusText", `Status: failed (${err.message})`);
   }
 }
 
@@ -598,8 +637,8 @@ function initAccountFlow() {
 qs("refreshBtn").addEventListener("click", async () => {
   const saved = loadSavedAccount();
   if (!saved?.apiKey) {
-    qs("statusText").textContent = "Status: connect API to load data";
-    qs("marketStatusText").textContent = "Markets: connect API to load data";
+    setText("statusText", "Status: connect API to load data");
+    setText("marketStatusText", "Markets: connect API to load data");
     showAccountPanel(true);
     return;
   }
@@ -608,7 +647,7 @@ qs("refreshBtn").addEventListener("click", async () => {
 qs("refreshMarketsBtn")?.addEventListener("click", async () => {
   const saved = loadSavedAccount();
   if (!saved?.apiKey) {
-    qs("marketStatusText").textContent = "Markets: connect API to load data";
+    setText("marketStatusText", "Markets: connect API to load data");
     showAccountPanel(true);
     return;
   }
@@ -624,6 +663,6 @@ if (savedAccount?.apiKey) {
 } else {
   showAccountPanel(true);
   clearDataViews();
-  qs("statusText").textContent = "Status: connect API to load data";
-  qs("marketStatusText").textContent = "Markets: connect API to load data";
+  setText("statusText", "Status: connect API to load data");
+  setText("marketStatusText", "Markets: connect API to load data");
 }
