@@ -64,6 +64,46 @@ function updateAccountHeader(account) {
   sub.textContent = "Manifold account connected";
 }
 
+function clearDataViews() {
+  qs("balanceValue").textContent = "-";
+  qs("pnlValue").textContent = "-";
+  qs("simBetsValue").textContent = "-";
+  qs("errorsValue").textContent = "-";
+  qs("lastUpdated").textContent = "Last updated: -";
+  renderRows("betsTable", [], () => "");
+  renderRows("errorsTable", [], () => "");
+  renderRows("strategyTable", [], () => "");
+  renderRows("marketsTable", [], () => "");
+  showMarketRaw(-1);
+}
+
+async function loadConnectedSnapshot(apiKey) {
+  const response = await fetch("https://api.manifold.markets/v0/me", {
+    headers: {
+      Authorization: `Key ${apiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`account snapshot failed (${response.status})`);
+  }
+
+  const me = await response.json();
+  const bal = Number(me.balance ?? 0);
+  if (!Number.isNaN(bal) && bal > 0) {
+    qs("balanceValue").textContent = fmtNum(bal, 2);
+  }
+  return me;
+}
+
+async function loadAllData(apiKey) {
+  await Promise.all([
+    loadDashboard(),
+    loadMarketDatapoints(),
+    apiKey ? loadConnectedSnapshot(apiKey) : Promise.resolve(),
+  ]);
+}
+
 async function verifyManifoldApiKey(apiKey) {
   const response = await fetch("https://api.manifold.markets/v0/me", {
     headers: {
@@ -108,7 +148,9 @@ async function onAccountSubmit(event) {
     saveAccount(account);
     updateAccountHeader(account);
     setConnectionStatus(`Connection: connected as ${account.manifoldUser}`);
-    qs("statusText").textContent = "Status: website account connected";
+    await loadAllData(apiKey);
+    qs("statusText").textContent = "Status: connected and synced";
+    showAccountPanel(false);
   } catch (error) {
     setConnectionStatus(`Connection: ${error.message}`, true);
   }
@@ -119,6 +161,18 @@ function onDisconnect() {
   qs("accountForm").reset();
   updateAccountHeader(null);
   setConnectionStatus("Connection: disconnected");
+  clearDataViews();
+  qs("statusText").textContent = "Status: connect API to load data";
+  qs("marketStatusText").textContent = "Markets: connect API to load data";
+  showAccountPanel(true);
+}
+
+function showAccountPanel(show) {
+  const panel = qs("accountPanel");
+  const chip = qs("accountChip");
+  if (!panel || !chip) return;
+  panel.hidden = !show;
+  chip.setAttribute("aria-expanded", show ? "true" : "false");
 }
 
 function parseCsv(text) {
@@ -356,6 +410,7 @@ async function loadDashboard() {
 function initAccountFlow() {
   const form = qs("accountForm");
   const disconnectBtn = qs("disconnectBtn");
+  const accountChip = qs("accountChip");
   if (!form || !disconnectBtn) return;
 
   const saved = loadSavedAccount();
@@ -370,12 +425,42 @@ function initAccountFlow() {
 
   form.addEventListener("submit", onAccountSubmit);
   disconnectBtn.addEventListener("click", onDisconnect);
+  accountChip?.addEventListener("click", () => {
+    const panel = qs("accountPanel");
+    if (!panel) return;
+    showAccountPanel(panel.hidden);
+  });
 }
 
 qs("refreshBtn").addEventListener("click", async () => {
-  await Promise.all([loadDashboard(), loadMarketDatapoints()]);
+  const saved = loadSavedAccount();
+  if (!saved?.apiKey) {
+    qs("statusText").textContent = "Status: connect API to load data";
+    qs("marketStatusText").textContent = "Markets: connect API to load data";
+    showAccountPanel(true);
+    return;
+  }
+  await loadAllData(saved.apiKey);
 });
-qs("refreshMarketsBtn")?.addEventListener("click", () => loadMarketDatapoints());
+qs("refreshMarketsBtn")?.addEventListener("click", async () => {
+  const saved = loadSavedAccount();
+  if (!saved?.apiKey) {
+    qs("marketStatusText").textContent = "Markets: connect API to load data";
+    showAccountPanel(true);
+    return;
+  }
+  await loadMarketDatapoints();
+});
+
 initAccountFlow();
-loadDashboard();
-loadMarketDatapoints();
+
+const savedAccount = loadSavedAccount();
+if (savedAccount?.apiKey) {
+  showAccountPanel(false);
+  loadAllData(savedAccount.apiKey);
+} else {
+  showAccountPanel(true);
+  clearDataViews();
+  qs("statusText").textContent = "Status: connect API to load data";
+  qs("marketStatusText").textContent = "Markets: connect API to load data";
+}
