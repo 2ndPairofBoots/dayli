@@ -18,17 +18,17 @@
       </div>
     </div>
     <div class="account-area" id="accountArea">
-      <button class="account-chip" id="accountChip" type="button" aria-label="Open account setup" aria-expanded="false" aria-controls="accountPanel">
+      <div class="account-chip" id="accountChip">
         <div class="avatar">A</div>
         <div>
           <p class="account-name" id="accountName">No account</p>
-          <p class="account-sub" id="accountSub">Create account to connect API</p>
+          <p class="account-sub" id="accountSub">API input is below</p>
         </div>
-      </button>
+      </div>
 
-      <section class="card account-panel" id="accountPanel" hidden>
+      <section class="card account-panel" id="accountPanel">
         <h2>Account Setup</h2>
-        <p class="muted">Manage your account and API key here.</p>
+        <p class="muted">Paste your Manifold API key here.</p>
         <form id="accountForm" class="form-grid" autocomplete="off">
           <label>
             <span>Display name</span>

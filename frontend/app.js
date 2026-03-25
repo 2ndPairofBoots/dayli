@@ -56,7 +56,7 @@ function updateAccountHeader(account) {
 
   if (!account) {
     name.textContent = "No account";
-    sub.textContent = "Create account to connect API";
+    sub.textContent = "API input is below";
     return;
   }
 
@@ -122,25 +122,6 @@ function onDisconnect() {
   qs("accountForm").reset();
   updateAccountHeader(null);
   setConnectionStatus("Connection: disconnected");
-}
-
-function showAccountPanel(show) {
-  const panel = qs("accountPanel");
-  const chip = qs("accountChip");
-  if (!panel || !chip) return;
-  panel.hidden = !show;
-  chip.setAttribute("aria-expanded", show ? "true" : "false");
-}
-
-function jumpToAccountPanel(focusTargetId) {
-  const area = qs("accountArea");
-  if (!area) return;
-  area.scrollIntoView({ behavior: "smooth", block: "start" });
-  if (focusTargetId) {
-    setTimeout(() => {
-      qs(focusTargetId)?.focus();
-    }, 150);
-  }
 }
 
 function parseCsv(text) {
@@ -378,7 +359,6 @@ async function loadDashboard() {
 function initAccountFlow() {
   const form = qs("accountForm");
   const disconnectBtn = qs("disconnectBtn");
-  const accountChip = qs("accountChip");
   if (!form || !disconnectBtn) return;
 
   const saved = loadSavedAccount();
@@ -393,15 +373,6 @@ function initAccountFlow() {
 
   form.addEventListener("submit", onAccountSubmit);
   disconnectBtn.addEventListener("click", onDisconnect);
-  accountChip?.addEventListener("click", () => {
-    const shouldShow = qs("accountPanel")?.hidden ?? true;
-    if (shouldShow) {
-      showAccountPanel(true);
-      jumpToAccountPanel("displayNameInput");
-    } else {
-      showAccountPanel(false);
-    }
-  });
 }
 
 qs("refreshBtn").addEventListener("click", async () => {
@@ -409,6 +380,5 @@ qs("refreshBtn").addEventListener("click", async () => {
 });
 qs("refreshMarketsBtn")?.addEventListener("click", () => loadMarketDatapoints());
 initAccountFlow();
-showAccountPanel(false);
 loadDashboard();
 loadMarketDatapoints();
