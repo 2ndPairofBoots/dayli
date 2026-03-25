@@ -98,6 +98,7 @@ class Market(BaseModel):
     resolve_time: Optional[datetime] = None
     status: str = "open"  # open, closed, resolved
     outcome: Optional[str] = None  # Resolution outcome
+    raw_data: Dict[str, Any] = field(default_factory=dict)  # Full API payload
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -105,7 +106,17 @@ class Market(BaseModel):
         if data is None:
             return None
 
-        normalized = dict(data)
+        normalized = {
+            "id": data.get("id", ""),
+            "question": data.get("question", ""),
+            "liquidity": data.get("liquidity", data.get("totalLiquidity", 0.0)),
+            "volume": data.get("volume", data.get("volume24Hours", 0.0)),
+            "closeTime": data.get("closeTime"),
+            "createdTime": data.get("createdTime"),
+            "resolveTime": data.get("resolveTime", data.get("resolutionTime")),
+            "outcome": data.get("outcome", data.get("resolution")),
+            "rawData": dict(data),
+        }
 
         # Normalize liquidity and volume naming.
         if "liquidity" not in normalized and "totalLiquidity" in normalized:
@@ -114,30 +125,32 @@ class Market(BaseModel):
             normalized["volume"] = normalized.get("volume24Hours", normalized.get("volume", 0.0))
 
         # Normalize probabilities for binary markets.
+        p = data.get("p", data.get("probability"))
         if "probability" not in normalized:
-            p = normalized.get("p")
             if isinstance(p, (int, float)):
                 p = max(0.0, min(1.0, float(p)))
                 normalized["probability"] = {"YES": p, "NO": 1.0 - p}
+            elif isinstance(data.get("probability"), dict):
+                normalized["probability"] = dict(data.get("probability"))
         elif isinstance(normalized.get("probability"), (int, float)):
             p = max(0.0, min(1.0, float(normalized.get("probability"))))
             normalized["probability"] = {"YES": p, "NO": 1.0 - p}
 
-        if "outcomes" not in normalized:
-            outcome_type = str(normalized.get("outcomeType", "")).upper()
-            if outcome_type == "BINARY":
-                normalized["outcomes"] = ["YES", "NO"]
+        outcome_type = str(data.get("outcomeType", "")).upper()
+        if isinstance(data.get("answers"), list) and data.get("answers"):
+            normalized["outcomes"] = [str(a.get("text", "")).strip() for a in data.get("answers", []) if a.get("text")]
+        elif outcome_type == "BINARY":
+            normalized["outcomes"] = ["YES", "NO"]
+        elif isinstance(data.get("outcomes"), list):
+            normalized["outcomes"] = [str(o) for o in data.get("outcomes", [])]
 
         # Normalize status and resolution.
-        if "status" not in normalized:
-            if normalized.get("isResolved") or normalized.get("resolution"):
-                normalized["status"] = "resolved"
-            else:
-                normalized["status"] = "open"
-        if "outcome" not in normalized and normalized.get("resolution"):
-            normalized["outcome"] = normalized.get("resolution")
-        if "resolveTime" not in normalized and "resolutionTime" in normalized:
-            normalized["resolveTime"] = normalized.get("resolutionTime")
+        if data.get("isResolved") or data.get("resolution"):
+            normalized["status"] = "resolved"
+        elif data.get("closeTime"):
+            normalized["status"] = "closed"
+        else:
+            normalized["status"] = "open"
 
         return super().from_dict(normalized)
     

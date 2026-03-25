@@ -84,6 +84,11 @@ main.py              # Entry point
 - Separate logs by domain (bets, errors, strategies, portfolio)
 - Enables analysis and debugging
 
+### API Uploader (`src/logger/data_uploader.py`)
+- Optional upload of bot events to your external API
+- Includes portfolio/balance snapshots and full market payload snapshots
+- Retries with backoff on transient failures
+
 ### Core Loop (`src/core.py`)
 - Main polling loop (every 60 seconds)
 - Market fetching
@@ -104,11 +109,27 @@ BOT_CHECK_INTERVAL=60           # Seconds between checks
 PAPER_TRADING_MODE=true         # Simulate trades (no real money)
 RISK_PROFILE=moderate           # conservative, moderate, aggressive
 
+# Optional external ingestion API
+BOT_UPLOAD_ENABLED=true
+BOT_UPLOAD_URL=https://your-api.example.com/ingest
+BOT_UPLOAD_API_KEY=your_uploader_key
+BOT_UPLOAD_SOURCE=dayli-bot
+
 # Risk Limits (see config/example.env for all options)
 MAX_POSITION_SIZE=500           # Max per trade
 MAX_INVESTED=5000              # Total portfolio limit
 MAX_DAILY_LOSS=2000            # Stop if daily loss exceeds this
 ```
+
+## External Upload Payloads
+
+When `BOT_UPLOAD_ENABLED=true`, the bot posts JSON envelopes to `BOT_UPLOAD_URL` for:
+
+- `market_snapshot` (includes full `raw_data` market payloads from Manifold)
+- `portfolio_event` (includes balance, invested, PnL, win rate, plus user balances)
+- `strategy_event`
+- `place_bet_event`
+- `error_event`
 
 ## Logging
 

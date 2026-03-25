@@ -12,8 +12,9 @@ Polling loop that:
 import asyncio
 import logging
 import os
+from dataclasses import asdict
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from api.client import ManifoldClient
 from api.models import Market, StrategyResult, PlaceBetEvent, PortfolioEvent, ErrorEvent
@@ -21,6 +22,7 @@ from strategies.base_strategy import BaseTradingStrategy
 from portfolio.manager import PortfolioManager
 from risk.kelly import RiskManager, create_risk_manager_from_profile
 from logger.csv_logger import CSVLogger
+from logger.data_uploader import DataUploader
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,7 @@ class Core:
         portfolio: PortfolioManager,
         risk_mgr: RiskManager,
         csv_logger: CSVLogger,
+        data_uploader: Optional[DataUploader] = None,
         max_bets_per_cycle: int = 10
     ):
         """
@@ -52,6 +55,7 @@ class Core:
         self.portfolio = portfolio
         self.risk_mgr = risk_mgr
         self.csv_logger = csv_logger
+        self.data_uploader = data_uploader
         self.max_bets_per_cycle = max(1, int(max_bets_per_cycle))
         
         self.cycle_count = 0
@@ -99,6 +103,16 @@ class Core:
                 logger.info(f"Fetching up to {market_limit} markets...")
                 markets = await self.client.get_markets(limit=market_limit)
                 logger.info(f"✓ Loaded {len(markets)} markets")
+
+                if self.data_uploader and self.data_uploader.enabled:
+                    await self.data_uploader.upload_event(
+                        "market_snapshot",
+                        {
+                            "cycle": self.cycle_count,
+                            "marketCount": len(markets),
+                            "markets": [m.raw_data or asdict(m) for m in markets],
+                        },
+                    )
                 
                 if not markets:
                     logger.warning("No markets loaded, waiting...")
@@ -143,6 +157,8 @@ class Core:
                     traceback=None
                 )
                 self.csv_logger.log_error(error_event)
+                if self.data_uploader and self.data_uploader.enabled:
+                    await self.data_uploader.upload_event("error_event", asdict(error_event))
                 
                 # Continue after error
                 await asyncio.sleep(poll_interval)
@@ -225,6 +241,8 @@ class Core:
                     latency_ms=eval_time
                 )
                 self.csv_logger.log_strategy(event)
+                if self.data_uploader and self.data_uploader.enabled:
+                    await self.data_uploader.upload_event("strategy_event", asdict(event))
             
             # Execute if bet proposed
             if not result.proposed_bets:
@@ -305,6 +323,8 @@ class Core:
                 actual_cost=actual_cost
             )
             self.csv_logger.log_place_bet(bet_event)
+            if self.data_uploader and self.data_uploader.enabled:
+                await self.data_uploader.upload_event("place_bet_event", asdict(bet_event))
             
             self.bets_placed += 1
             return 1
@@ -335,6 +355,11 @@ class Core:
         )
         
         self.csv_logger.log_portfolio(event)
+        if self.data_uploader and self.data_uploader.enabled:
+            payload = asdict(event)
+            if user:
+                payload["user"] = asdict(user)
+            await self.data_uploader.upload_event("portfolio_event", payload)
         
         logger.info(
             f"Portfolio: balance={metrics.balance:.0f}, "
@@ -402,6 +427,22 @@ async def main(
     portfolio = PortfolioManager(initial_balance=initial_balance)
     risk_mgr = create_risk_manager_from_profile(initial_balance, profile=risk_profile)
     csv_logger = CSVLogger()
+    data_uploader = None
+
+    upload_enabled = os.getenv("BOT_UPLOAD_ENABLED", "false").lower() == "true"
+    upload_url = os.getenv("BOT_UPLOAD_URL", "").strip()
+    if upload_enabled and upload_url:
+        data_uploader = DataUploader(
+            upload_url=upload_url,
+            api_key=os.getenv("BOT_UPLOAD_API_KEY", "").strip() or None,
+            source=os.getenv("BOT_UPLOAD_SOURCE", "dayli-bot"),
+            timeout_seconds=int(os.getenv("BOT_UPLOAD_TIMEOUT_SECONDS", "15")),
+            max_retries=int(os.getenv("BOT_UPLOAD_MAX_RETRIES", "3")),
+            enabled=True,
+        )
+        logger.info("External data upload is enabled")
+    elif upload_enabled:
+        logger.warning("BOT_UPLOAD_ENABLED=true but BOT_UPLOAD_URL is empty; uploads disabled")
     
     # Initialize strategies
     from strategies.base_strategy import SimpleStrategy
@@ -424,6 +465,7 @@ async def main(
         portfolio,
         risk_mgr,
         csv_logger,
+        data_uploader=data_uploader,
         max_bets_per_cycle=int(os.getenv("MAX_BETS_PER_CYCLE", "10")),
     )
     
@@ -435,6 +477,8 @@ async def main(
         )
     finally:
         csv_logger.close()
+        if data_uploader:
+            await data_uploader.close()
         await client.close()
 
 
