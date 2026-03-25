@@ -14,28 +14,52 @@
     <div class="brand-row">
       <div>
         <p class="eyebrow">Dayli Operations</p>
-        <h1>Bot Dashboard</h1>
+        <h1>Website Console</h1>
       </div>
       <nav class="nav-tabs" aria-label="Primary">
         <span class="tab active">Dashboard</span>
-        <span class="tab">Logs</span>
-        <span class="tab">Health</span>
+        <span class="tab">Account</span>
+        <span class="tab">Connection</span>
       </nav>
     </div>
     <div class="account-chip" id="accountChip">
       <div class="avatar">A</div>
       <div>
-        <p class="account-name" id="accountName">2ndPairofBoots</p>
-        <p class="account-sub">Manifold account</p>
+        <p class="account-name" id="accountName">No account</p>
+        <p class="account-sub" id="accountSub">Create account to connect API</p>
       </div>
     </div>
   </header>
 
   <main class="layout shell">
+    <section class="card auth-card">
+      <h2>Account Setup</h2>
+      <p class="muted">Create a local website account and connect your Manifold API key.</p>
+      <form id="accountForm" class="form-grid" autocomplete="off">
+        <label>
+          <span>Display name</span>
+          <input id="displayNameInput" type="text" placeholder="Alex" required>
+        </label>
+        <label>
+          <span>Email</span>
+          <input id="emailInput" type="email" placeholder="alex@email.com" required>
+        </label>
+        <label class="wide">
+          <span>Manifold API key</span>
+          <input id="apiKeyInput" type="password" placeholder="key_..." required>
+        </label>
+        <div class="actions wide">
+          <button id="connectBtn" class="btn" type="submit">Create & Connect</button>
+          <button id="disconnectBtn" class="btn btn-secondary" type="button">Disconnect</button>
+        </div>
+      </form>
+      <p id="connectionStatus" class="status">Connection: not configured</p>
+    </section>
+
     <section class="toolbar card">
       <div>
         <h2>Control</h2>
-        <p class="muted">Refresh data and monitor runtime state from CSV snapshots.</p>
+        <p class="muted">Refresh account details and CSV runtime snapshots.</p>
       </div>
       <div class="topbar-actions">
         <button id="refreshBtn" class="btn">Refresh</button>

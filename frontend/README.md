@@ -2,6 +2,14 @@
 
 This folder is deployed as a static GitHub Pages site.
 
+## Website account flow
+
+- Open the dashboard and use Account Setup.
+- Enter display name, email, and Manifold API key.
+- Click Create & Connect to verify the key against Manifold /v0/me directly from the browser.
+- Account details are stored in browser localStorage for this site.
+- Use Disconnect to remove the local account and API key from browser storage.
+
 ## What it shows
 
 - Recent bets from `logs/bets/place_bet_event.csv`

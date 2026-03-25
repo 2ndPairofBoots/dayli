@@ -8,6 +8,113 @@ const paths = {
 };
 
 const qs = (id) => document.getElementById(id);
+const ACCOUNT_STORAGE_KEY = "dayli_account";
+
+function maskApiKey(key) {
+  if (!key || key.length < 8) return "configured";
+  return `${key.slice(0, 4)}...${key.slice(-4)}`;
+}
+
+function loadSavedAccount() {
+  try {
+    const raw = localStorage.getItem(ACCOUNT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.displayName || !parsed?.email || !parsed?.apiKey) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveAccount(account) {
+  localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(account));
+}
+
+function clearAccount() {
+  localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+}
+
+function setConnectionStatus(text, isError = false) {
+  const el = qs("connectionStatus");
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? "#b91c1c" : "";
+}
+
+function updateAccountHeader(account) {
+  const name = qs("accountName");
+  const sub = qs("accountSub");
+  if (!name || !sub) return;
+
+  if (!account) {
+    name.textContent = "No account";
+    sub.textContent = "Create account to connect API";
+    return;
+  }
+
+  name.textContent = account.displayName;
+  sub.textContent = `Connected ${maskApiKey(account.apiKey)}`;
+}
+
+async function verifyManifoldApiKey(apiKey) {
+  const response = await fetch("https://api.manifold.markets/v0/me", {
+    headers: {
+      Authorization: `Key ${apiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API check failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+function prefillAccountForm(account) {
+  if (!account) return;
+  qs("displayNameInput").value = account.displayName;
+  qs("emailInput").value = account.email;
+  qs("apiKeyInput").value = account.apiKey;
+}
+
+async function onAccountSubmit(event) {
+  event.preventDefault();
+
+  const displayName = qs("displayNameInput").value.trim();
+  const email = qs("emailInput").value.trim();
+  const apiKey = qs("apiKeyInput").value.trim();
+
+  if (!displayName || !email || !apiKey) {
+    setConnectionStatus("Connection: missing required fields", true);
+    return;
+  }
+
+  setConnectionStatus("Connection: verifying API key...");
+
+  try {
+    const me = await verifyManifoldApiKey(apiKey);
+    const account = {
+      displayName,
+      email,
+      apiKey,
+      manifoldUser: me.username || me.name || "Connected",
+    };
+    saveAccount(account);
+    updateAccountHeader(account);
+    setConnectionStatus(`Connection: connected as ${account.manifoldUser}`);
+    qs("statusText").textContent = "Status: website account connected";
+  } catch (error) {
+    setConnectionStatus(`Connection: ${error.message}`, true);
+  }
+}
+
+function onDisconnect() {
+  clearAccount();
+  qs("accountForm").reset();
+  updateAccountHeader(null);
+  setConnectionStatus("Connection: disconnected");
+}
 
 function parseCsv(text) {
   const rows = [];
@@ -88,8 +195,10 @@ function decisionBadge(decision) {
 }
 
 function inferAccountName(rows) {
-  if (!rows || !rows.length) return "2ndPairofBoots";
-  return "2ndPairofBoots";
+  const saved = loadSavedAccount();
+  if (saved?.displayName) return saved.displayName;
+  if (!rows || !rows.length) return "No account";
+  return "No account";
 }
 
 async function loadDashboard() {
@@ -153,5 +262,25 @@ async function loadDashboard() {
   }
 }
 
+function initAccountFlow() {
+  const form = qs("accountForm");
+  const disconnectBtn = qs("disconnectBtn");
+  if (!form || !disconnectBtn) return;
+
+  const saved = loadSavedAccount();
+  if (saved) {
+    prefillAccountForm(saved);
+    updateAccountHeader(saved);
+    setConnectionStatus(`Connection: connected as ${saved.manifoldUser || saved.displayName}`);
+  } else {
+    updateAccountHeader(null);
+    setConnectionStatus("Connection: not configured");
+  }
+
+  form.addEventListener("submit", onAccountSubmit);
+  disconnectBtn.addEventListener("click", onDisconnect);
+}
+
 qs("refreshBtn").addEventListener("click", loadDashboard);
+initAccountFlow();
 loadDashboard();
