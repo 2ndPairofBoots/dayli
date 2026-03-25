@@ -14,6 +14,15 @@ const MANIFOLD_BASE_URL = "https://api.manifold.markets";
 let lastMarkets = [];
 let lastHoldings = [];
 
+function setTrendClass(id, value) {
+  const el = qs(id);
+  if (!el) return;
+  el.classList.remove("gain", "loss");
+  const n = Number(value);
+  if (Number.isNaN(n) || n === 0) return;
+  el.classList.add(n > 0 ? "gain" : "loss");
+}
+
 function setText(id, value) {
   const el = qs(id);
   if (!el) return;
@@ -76,6 +85,7 @@ function clearDataViews() {
   setText("investedValue", "-");
   setText("pnlValue", "-");
   setText("openHoldingsValue", "-");
+  setTrendClass("pnlValue", 0);
   setText("lastUpdated", "Last updated: -");
   renderRows("betsTable", [], () => "");
   renderRows("errorsTable", [], () => "");
@@ -301,6 +311,11 @@ async function loadCurrentHoldings(apiKey) {
 
   try {
     const me = await fetchCurrentUser(apiKey);
+    const liveBalance = parseNum(me.balance, me.cashBalance, me.totalBalance);
+    if (liveBalance > 0) {
+      setText("balanceValue", formatMana(liveBalance));
+    }
+
     const endpoints = [
       `${MANIFOLD_BASE_URL}/v0/portfolio`,
       `${MANIFOLD_BASE_URL}/v0/portfolio/${encodeURIComponent(me.username)}`,
@@ -348,15 +363,17 @@ async function loadCurrentHoldings(apiKey) {
         <td>${formatMana(h.shares)}</td>
         <td>${formatMana(h.avgPrice)}</td>
         <td>${formatMana(h.value)}</td>
-        <td>${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</td>
+        <td class="${h.pnl >= 0 ? "gain" : "loss"}">${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</td>
       </tr>`
     );
 
     setText("openHoldingsValue", String(lastHoldings.length));
     const invested = lastHoldings.reduce((sum, h) => sum + parseNum(h.shares) * parseNum(h.avgPrice), 0);
-    const pnl = lastHoldings.reduce((sum, h) => sum + parseNum(h.pnl), 0);
+    const currentValue = lastHoldings.reduce((sum, h) => sum + parseNum(h.value), 0);
+    const pnl = currentValue - invested;
     setText("investedValue", formatMana(invested));
     setText("pnlValue", formatMana(pnl));
+    setTrendClass("pnlValue", pnl);
 
     if (status) status.textContent = `Holdings: loaded ${lastHoldings.length} open trades.`;
   } catch (error) {
@@ -678,12 +695,17 @@ async function loadDashboard() {
     ]);
 
     const latestPortfolio = portfolio[portfolio.length - 1] || {};
+    const connected = !!loadSavedAccount()?.apiKey;
 
-    if (latestPortfolio.balance != null && latestPortfolio.balance !== "") {
-      setText("balanceValue", formatMana(latestPortfolio.balance));
+    if (!connected) {
+      if (latestPortfolio.balance != null && latestPortfolio.balance !== "") {
+        setText("balanceValue", formatMana(latestPortfolio.balance));
+      }
+      setText("investedValue", formatMana(latestPortfolio.invested));
+      setText("pnlValue", formatMana(latestPortfolio.pnl));
+      setTrendClass("pnlValue", parseNum(latestPortfolio.pnl));
     }
-    setText("investedValue", formatMana(latestPortfolio.invested));
-    setText("pnlValue", formatMana(latestPortfolio.pnl));
+
     setText("accountName", inferAccountName([]));
     drawPortfolioChart(portfolio);
 
