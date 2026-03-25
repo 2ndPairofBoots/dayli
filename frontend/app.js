@@ -120,16 +120,18 @@ function setActiveTab(tabId) {
   });
 }
 
-function showAccountSection(show) {
-  const section = qs("accountSection");
-  if (!section) return;
-  section.hidden = !show;
+function showAccountPanel(show) {
+  const panel = qs("accountPanel");
+  const chip = qs("accountChip");
+  if (!panel || !chip) return;
+  panel.hidden = !show;
+  chip.setAttribute("aria-expanded", show ? "true" : "false");
 }
 
-function jumpToAccountSection(focusTargetId) {
-  const section = qs("accountSection");
-  if (!section) return;
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
+function jumpToAccountPanel(focusTargetId) {
+  const area = qs("accountArea");
+  if (!area) return;
+  area.scrollIntoView({ behavior: "smooth", block: "start" });
   if (focusTargetId) {
     setTimeout(() => {
       qs(focusTargetId)?.focus();
@@ -308,34 +310,40 @@ function initAccountFlow() {
   form.addEventListener("submit", onAccountSubmit);
   disconnectBtn.addEventListener("click", onDisconnect);
   accountChip?.addEventListener("click", () => {
-    setActiveTab("tabAccount");
-    showAccountSection(true);
-    jumpToAccountSection("displayNameInput");
+    const shouldShow = qs("accountPanel")?.hidden ?? true;
+    if (shouldShow) {
+      setActiveTab("tabAccount");
+      showAccountPanel(true);
+      jumpToAccountPanel("displayNameInput");
+    } else {
+      setActiveTab("tabDashboard");
+      showAccountPanel(false);
+    }
   });
 }
 
 function initNavigation() {
   qs("tabDashboard")?.addEventListener("click", () => {
     setActiveTab("tabDashboard");
-    showAccountSection(false);
+    showAccountPanel(false);
     jumpToDashboardSection();
   });
 
   qs("tabAccount")?.addEventListener("click", () => {
     setActiveTab("tabAccount");
-    showAccountSection(true);
-    jumpToAccountSection("displayNameInput");
+    showAccountPanel(true);
+    jumpToAccountPanel("displayNameInput");
   });
 
   qs("tabConnection")?.addEventListener("click", () => {
     setActiveTab("tabConnection");
-    showAccountSection(true);
-    jumpToAccountSection("apiKeyInput");
+    showAccountPanel(true);
+    jumpToAccountPanel("apiKeyInput");
   });
 }
 
 qs("refreshBtn").addEventListener("click", loadDashboard);
 initNavigation();
 initAccountFlow();
-showAccountSection(false);
+showAccountPanel(false);
 loadDashboard();
