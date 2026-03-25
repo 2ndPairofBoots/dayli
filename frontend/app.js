@@ -107,28 +107,30 @@ async function loadConnectedSnapshot(apiKey) {
 }
 
 async function loadAllData(apiKey) {
+  await loadDashboard();
   await Promise.all([
-    loadDashboard(),
     loadMarketDatapoints(),
     loadRecentBetsFromApi(apiKey),
-    loadCurrentHoldings(apiKey),
     apiKey ? loadConnectedSnapshot(apiKey) : Promise.resolve(),
   ]);
+  await loadCurrentHoldings(apiKey);
+}
+
+async function fetchCurrentUser(apiKey) {
+  const meRes = await fetch("https://api.manifold.markets/v0/me", {
+    headers: {
+      Authorization: `Key ${apiKey}`,
+    },
+  });
+  if (!meRes.ok) {
+    throw new Error(`user lookup failed (${meRes.status})`);
+  }
+  return meRes.json();
 }
 
 async function loadRecentBetsFromApi(apiKey) {
   try {
-    const meRes = await fetch("https://api.manifold.markets/v0/me", {
-      headers: {
-        Authorization: `Key ${apiKey}`,
-      },
-    });
-
-    if (!meRes.ok) {
-      throw new Error(`user lookup failed (${meRes.status})`);
-    }
-
-    const me = await meRes.json();
+    const me = await fetchCurrentUser(apiKey);
     const betsRes = await fetch(
       `${MANIFOLD_BASE_URL}/v0/bets?userId=${encodeURIComponent(me.id)}&limit=50`,
       {
@@ -186,20 +188,76 @@ function extractHoldings(data) {
   if (Array.isArray(data?.holdings)) arrays.push(data.holdings);
   if (Array.isArray(data?.contracts)) arrays.push(data.contracts);
   if (Array.isArray(data?.data?.investments)) arrays.push(data.data.investments);
+  if (Array.isArray(data?.data?.positions)) arrays.push(data.data.positions);
+  if (Array.isArray(data?.portfolio)) arrays.push(data.portfolio);
+  if (Array.isArray(data?.positionsByContract)) arrays.push(data.positionsByContract);
 
-  const source = arrays.find((arr) => arr.length > 0) || [];
-  return source.map((row) => {
+  const source = arrays.flatMap((arr) => arr || []);
+  const result = [];
+
+  source.forEach((row) => {
     const marketQuestion = row.question || row.contractQuestion || row.title || row.contractId || "Unknown market";
-    const outcome = row.outcome || row.answer || row.position || "-";
-    const shares = parseNum(row.shares, row.totalShares, row.numberShares, row.amount);
-    const avgPrice = parseNum(row.averagePrice, row.avgPrice, row.avgCost);
-    const value = parseNum(row.currentValue, row.value, row.notionalValue, shares * avgPrice);
-    const pnl = parseNum(row.profit, row.pnl, row.unrealizedPnl, value - shares * avgPrice);
+    const marketId = row.contractId || row.marketId || row.id || marketQuestion;
+    const yesShares = parseNum(row.hasYesShares, row.yesShares);
+    const noShares = parseNum(row.hasNoShares, row.noShares);
+    const fallbackShares = parseNum(row.shares, row.totalShares, row.numberShares, row.amount);
+    const avgPrice = parseNum(row.averagePrice, row.avgPrice, row.avgCost, row.price);
 
+    const pushRow = (outcome, sharesVal) => {
+      if (sharesVal <= 0) return;
+      const value = parseNum(row.currentValue, row.value, row.notionalValue, sharesVal * avgPrice);
+      const pnl = parseNum(row.profit, row.pnl, row.unrealizedPnl, value - sharesVal * avgPrice);
+      result.push({
+        marketId,
+        marketQuestion,
+        outcome,
+        shares: sharesVal,
+        avgPrice,
+        value,
+        pnl,
+      });
+    };
+
+    if (yesShares > 0 || noShares > 0) {
+      pushRow("YES", yesShares);
+      pushRow("NO", noShares);
+    } else {
+      const outcome = row.outcome || row.answer || row.position || "-";
+      pushRow(outcome, fallbackShares);
+    }
+  });
+
+  return result;
+}
+
+function mergeHoldings(holdings) {
+  const byKey = new Map();
+
+  holdings.forEach((h) => {
+    const key = `${h.marketId}::${h.outcome}`;
+    const prev = byKey.get(key) || {
+      marketId: h.marketId,
+      marketQuestion: h.marketQuestion,
+      outcome: h.outcome,
+      shares: 0,
+      costBasis: 0,
+      value: 0,
+      pnl: 0,
+    };
+
+    prev.shares += parseNum(h.shares);
+    prev.costBasis += parseNum(h.shares) * parseNum(h.avgPrice);
+    prev.value += parseNum(h.value);
+    prev.pnl += parseNum(h.pnl);
+    byKey.set(key, prev);
+  });
+
+  return Array.from(byKey.values()).map((h) => {
+    const avgPrice = h.shares > 0 ? h.costBasis / h.shares : 0;
+    const value = h.value > 0 ? h.value : h.costBasis;
+    const pnl = Number.isFinite(h.pnl) ? h.pnl : value - h.costBasis;
     return {
-      marketQuestion,
-      outcome,
-      shares,
+      ...h,
       avgPrice,
       value,
       pnl,
@@ -207,16 +265,48 @@ function extractHoldings(data) {
   });
 }
 
+function buildHoldingsFromBets(bets) {
+  const grouped = new Map();
+  (bets || []).forEach((b) => {
+    const marketId = b.contractId || b.contract_id || "unknown";
+    const outcome = b.outcome || "-";
+    const key = `${marketId}::${outcome}`;
+    const shares = parseNum(b.shares);
+    const amount = parseNum(b.amount);
+    const existing = grouped.get(key) || {
+      marketId,
+      marketQuestion: b.contractQuestion || b.question || marketId,
+      outcome,
+      shares: 0,
+      costBasis: 0,
+    };
+    existing.shares += shares;
+    existing.costBasis += amount;
+    grouped.set(key, existing);
+  });
+
+  return Array.from(grouped.values())
+    .filter((h) => h.shares > 0)
+    .map((h) => ({
+      ...h,
+      avgPrice: h.shares > 0 ? h.costBasis / h.shares : 0,
+      value: h.costBasis,
+      pnl: 0,
+    }));
+}
+
 async function loadCurrentHoldings(apiKey) {
   const status = qs("holdingsStatusText");
   if (status) status.textContent = "Holdings: loading...";
 
-  const endpoints = [
-    `${MANIFOLD_BASE_URL}/v0/portfolio`,
-  ];
-
   try {
-    let payload = null;
+    const me = await fetchCurrentUser(apiKey);
+    const endpoints = [
+      `${MANIFOLD_BASE_URL}/v0/portfolio`,
+      `${MANIFOLD_BASE_URL}/v0/portfolio/${encodeURIComponent(me.username)}`,
+    ];
+
+    const payloads = [];
     for (const url of endpoints) {
       const res = await fetch(url, {
         headers: {
@@ -224,16 +314,28 @@ async function loadCurrentHoldings(apiKey) {
         },
       });
       if (res.ok) {
-        payload = await res.json();
-        break;
+        payloads.push(await res.json());
       }
     }
 
-    if (!payload) {
-      throw new Error("portfolio endpoint unavailable");
+    let merged = mergeHoldings(payloads.flatMap((p) => extractHoldings(p)));
+
+    if (!merged.length) {
+      const betsRes = await fetch(
+        `${MANIFOLD_BASE_URL}/v0/bets?userId=${encodeURIComponent(me.id)}&limit=1000`,
+        {
+          headers: {
+            Authorization: `Key ${apiKey}`,
+          },
+        }
+      );
+      if (betsRes.ok) {
+        const bets = await betsRes.json();
+        merged = buildHoldingsFromBets(Array.isArray(bets) ? bets : []);
+      }
     }
 
-    lastHoldings = extractHoldings(payload)
+    lastHoldings = merged
       .filter((h) => h.shares > 0)
       .sort((a, b) => b.value - a.value);
 
@@ -250,12 +352,17 @@ async function loadCurrentHoldings(apiKey) {
       </tr>`
     );
 
-    qs("openHoldingsValue").textContent = String(lastHoldings.length);
+    setText("openHoldingsValue", String(lastHoldings.length));
+    const invested = lastHoldings.reduce((sum, h) => sum + parseNum(h.shares) * parseNum(h.avgPrice), 0);
+    const pnl = lastHoldings.reduce((sum, h) => sum + parseNum(h.pnl), 0);
+    setText("investedValue", formatMana(invested));
+    setText("pnlValue", formatMana(pnl));
+
     if (status) status.textContent = `Holdings: loaded ${lastHoldings.length} open trades.`;
   } catch (error) {
     lastHoldings = [];
     renderRows("holdingsTable", [], () => "");
-    qs("openHoldingsValue").textContent = "0";
+    setText("openHoldingsValue", "0");
     if (status) status.textContent = `Holdings: failed (${error.message})`;
   }
 }
