@@ -52,12 +52,15 @@ body {
 }
 
 .tab {
+  appearance: none;
   padding: 7px 11px;
   border-radius: 999px;
   font-size: 12px;
   border: 1px solid var(--border);
   color: var(--muted);
   background: var(--card);
+  cursor: pointer;
+  font-family: "Manrope", system-ui, sans-serif;
 }
 
 .tab.active {
@@ -76,6 +79,19 @@ body {
   background: var(--card);
   border: 1px solid var(--border);
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  cursor: pointer;
+  text-align: left;
+  font-family: "Manrope", system-ui, sans-serif;
+}
+
+.account-chip:hover {
+  background: var(--brand-soft);
+}
+
+.account-chip:focus-visible,
+.tab:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .avatar {

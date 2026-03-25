@@ -17,22 +17,22 @@
         <h1>Website Console</h1>
       </div>
       <nav class="nav-tabs" aria-label="Primary">
-        <span class="tab active">Dashboard</span>
-        <span class="tab">Account</span>
-        <span class="tab">Connection</span>
+        <button class="tab active" id="tabDashboard" type="button">Dashboard</button>
+        <button class="tab" id="tabAccount" type="button">Account</button>
+        <button class="tab" id="tabConnection" type="button">Connection</button>
       </nav>
     </div>
-    <div class="account-chip" id="accountChip">
+    <button class="account-chip" id="accountChip" type="button" aria-label="Open account setup">
       <div class="avatar">A</div>
       <div>
         <p class="account-name" id="accountName">No account</p>
         <p class="account-sub" id="accountSub">Create account to connect API</p>
       </div>
-    </div>
+    </button>
   </header>
 
   <main class="layout shell">
-    <section class="card auth-card">
+    <section class="card auth-card" id="accountSection">
       <h2>Account Setup</h2>
       <p class="muted">Create a local website account and connect your Manifold API key.</p>
       <form id="accountForm" class="form-grid" autocomplete="off">
@@ -67,7 +67,7 @@
       </div>
     </section>
 
-    <section class="card metrics">
+    <section class="card metrics" id="dashboardSection">
       <h2>Runtime Snapshot</h2>
       <div class="metrics-grid">
         <div class="metric">

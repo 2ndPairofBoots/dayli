@@ -116,6 +116,31 @@ function onDisconnect() {
   setConnectionStatus("Connection: disconnected");
 }
 
+function setActiveTab(tabId) {
+  ["tabDashboard", "tabAccount", "tabConnection"].forEach((id) => {
+    const el = qs(id);
+    if (!el) return;
+    el.classList.toggle("active", id === tabId);
+  });
+}
+
+function jumpToAccountSection(focusTargetId) {
+  const section = qs("accountSection");
+  if (!section) return;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (focusTargetId) {
+    setTimeout(() => {
+      qs(focusTargetId)?.focus();
+    }, 150);
+  }
+}
+
+function jumpToDashboardSection() {
+  const section = qs("dashboardSection");
+  if (!section) return;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -265,6 +290,7 @@ async function loadDashboard() {
 function initAccountFlow() {
   const form = qs("accountForm");
   const disconnectBtn = qs("disconnectBtn");
+  const accountChip = qs("accountChip");
   if (!form || !disconnectBtn) return;
 
   const saved = loadSavedAccount();
@@ -279,8 +305,30 @@ function initAccountFlow() {
 
   form.addEventListener("submit", onAccountSubmit);
   disconnectBtn.addEventListener("click", onDisconnect);
+  accountChip?.addEventListener("click", () => {
+    setActiveTab("tabAccount");
+    jumpToAccountSection("displayNameInput");
+  });
+}
+
+function initNavigation() {
+  qs("tabDashboard")?.addEventListener("click", () => {
+    setActiveTab("tabDashboard");
+    jumpToDashboardSection();
+  });
+
+  qs("tabAccount")?.addEventListener("click", () => {
+    setActiveTab("tabAccount");
+    jumpToAccountSection("displayNameInput");
+  });
+
+  qs("tabConnection")?.addEventListener("click", () => {
+    setActiveTab("tabConnection");
+    jumpToAccountSection("apiKeyInput");
+  });
 }
 
 qs("refreshBtn").addEventListener("click", loadDashboard);
+initNavigation();
 initAccountFlow();
 loadDashboard();
