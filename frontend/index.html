@@ -32,9 +32,9 @@
   </header>
 
   <main class="layout shell">
-    <section class="card auth-card" id="accountSection">
+    <section class="card auth-card" id="accountSection" hidden>
       <h2>Account Setup</h2>
-      <p class="muted">Create a local website account and connect your Manifold API key.</p>
+      <p class="muted">This section is private to Account controls. Your API key stays hidden from the dashboard header.</p>
       <form id="accountForm" class="form-grid" autocomplete="off">
         <label>
           <span>Display name</span>
@@ -46,7 +46,7 @@
         </label>
         <label class="wide">
           <span>Manifold API key</span>
-          <input id="apiKeyInput" type="password" placeholder="key_..." required>
+          <input id="apiKeyInput" type="password" placeholder="Enter only to add/update key">
         </label>
         <div class="actions wide">
           <button id="connectBtn" class="btn" type="submit">Create & Connect</button>

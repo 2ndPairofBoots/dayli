@@ -10,11 +10,6 @@ const paths = {
 const qs = (id) => document.getElementById(id);
 const ACCOUNT_STORAGE_KEY = "dayli_account";
 
-function maskApiKey(key) {
-  if (!key || key.length < 8) return "configured";
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
-}
-
 function loadSavedAccount() {
   try {
     const raw = localStorage.getItem(ACCOUNT_STORAGE_KEY);
@@ -54,7 +49,7 @@ function updateAccountHeader(account) {
   }
 
   name.textContent = account.displayName;
-  sub.textContent = `Connected ${maskApiKey(account.apiKey)}`;
+  sub.textContent = "Manifold account connected";
 }
 
 async function verifyManifoldApiKey(apiKey) {
@@ -75,7 +70,6 @@ function prefillAccountForm(account) {
   if (!account) return;
   qs("displayNameInput").value = account.displayName;
   qs("emailInput").value = account.email;
-  qs("apiKeyInput").value = account.apiKey;
 }
 
 async function onAccountSubmit(event) {
@@ -83,7 +77,9 @@ async function onAccountSubmit(event) {
 
   const displayName = qs("displayNameInput").value.trim();
   const email = qs("emailInput").value.trim();
-  const apiKey = qs("apiKeyInput").value.trim();
+  const keyInput = qs("apiKeyInput").value.trim();
+  const existing = loadSavedAccount();
+  const apiKey = keyInput || existing?.apiKey || "";
 
   if (!displayName || !email || !apiKey) {
     setConnectionStatus("Connection: missing required fields", true);
@@ -122,6 +118,12 @@ function setActiveTab(tabId) {
     if (!el) return;
     el.classList.toggle("active", id === tabId);
   });
+}
+
+function showAccountSection(show) {
+  const section = qs("accountSection");
+  if (!section) return;
+  section.hidden = !show;
 }
 
 function jumpToAccountSection(focusTargetId) {
@@ -307,6 +309,7 @@ function initAccountFlow() {
   disconnectBtn.addEventListener("click", onDisconnect);
   accountChip?.addEventListener("click", () => {
     setActiveTab("tabAccount");
+    showAccountSection(true);
     jumpToAccountSection("displayNameInput");
   });
 }
@@ -314,16 +317,19 @@ function initAccountFlow() {
 function initNavigation() {
   qs("tabDashboard")?.addEventListener("click", () => {
     setActiveTab("tabDashboard");
+    showAccountSection(false);
     jumpToDashboardSection();
   });
 
   qs("tabAccount")?.addEventListener("click", () => {
     setActiveTab("tabAccount");
+    showAccountSection(true);
     jumpToAccountSection("displayNameInput");
   });
 
   qs("tabConnection")?.addEventListener("click", () => {
     setActiveTab("tabConnection");
+    showAccountSection(true);
     jumpToAccountSection("apiKeyInput");
   });
 }
@@ -331,4 +337,5 @@ function initNavigation() {
 qs("refreshBtn").addEventListener("click", loadDashboard);
 initNavigation();
 initAccountFlow();
+showAccountSection(false);
 loadDashboard();

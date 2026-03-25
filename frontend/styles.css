@@ -1,15 +1,15 @@
 :root {
-  --bg: #f7f8fa;
-  --card: #ffffff;
-  --card-soft: #fbfbfc;
-  --text: #121316;
-  --muted: #667085;
-  --brand: #111827;
-  --brand-soft: #f1f5f9;
-  --danger: #dc2626;
-  --good: #16a34a;
-  --border: #e5e7eb;
-  --ring: #d1d5db;
+  --bg: #090d12;
+  --card: #121820;
+  --card-soft: #171f2a;
+  --text: #e8eef7;
+  --muted: #9fb0c7;
+  --brand: #e8eef7;
+  --brand-soft: #1e2836;
+  --danger: #ef4444;
+  --good: #22c55e;
+  --border: #253246;
+  --ring: #3b4d67;
 }
 
 * {
@@ -78,7 +78,7 @@ body {
   border-radius: 12px;
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   text-align: left;
   font-family: "Manrope", system-ui, sans-serif;
@@ -99,7 +99,7 @@ body {
   height: 34px;
   border-radius: 50%;
   background: var(--brand-soft);
-  color: #111827;
+  color: #dbe7f7;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -162,12 +162,12 @@ h2 {
 }
 
 .btn-secondary {
-  background: #fff;
-  color: #374151;
+  background: #1a2432;
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: #f3f4f6;
+  background: #243246;
 }
 
 .layout {
@@ -206,7 +206,7 @@ h2 {
 .form-grid input {
   width: 100%;
   border: 1px solid var(--border);
-  background: #fff;
+  background: #0f151e;
   color: var(--text);
   border-radius: 10px;
   padding: 10px 12px;
@@ -217,7 +217,7 @@ h2 {
 .form-grid input:focus {
   outline: none;
   border-color: var(--ring);
-  box-shadow: 0 0 0 3px #f3f4f6;
+  box-shadow: 0 0 0 3px rgba(59, 77, 103, 0.35);
 }
 
 .wide {
@@ -234,7 +234,7 @@ h2 {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .metrics-grid {
@@ -273,7 +273,7 @@ h2 {
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: #0f151e;
 }
 
 .table-wrap.small {
@@ -288,7 +288,7 @@ table {
 }
 
 thead {
-  background: #f9fafb;
+  background: #192334;
 }
 
 th,
@@ -320,13 +320,13 @@ tr:last-child td {
 }
 
 .badge.good {
-  color: #166534;
-  background: #dcfce7;
+  color: #bbf7d0;
+  background: #12301f;
 }
 
 .badge.bad {
-  color: #991b1b;
-  background: #fee2e2;
+  color: #fecaca;
+  background: #3f1717;
 }
 
 @media (min-width: 920px) {
