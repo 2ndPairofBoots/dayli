@@ -92,6 +92,41 @@
       <p id="statusText" class="status">Status: loading...</p>
     </section>
 
+    <section class="card" id="marketSection">
+      <div class="toolbar-inline">
+        <div>
+          <h2>Manifold Market Datapoints</h2>
+          <p class="muted">Live market feed with full raw payload inspector.</p>
+        </div>
+        <div class="inline-actions">
+          <label class="field-inline">
+            <span>Limit</span>
+            <input id="marketLimitInput" type="number" min="10" max="1000" value="120">
+          </label>
+          <button id="refreshMarketsBtn" class="btn" type="button">Refresh Markets</button>
+        </div>
+      </div>
+      <p id="marketStatusText" class="status">Markets: loading...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Question</th>
+              <th>Prob</th>
+              <th>Liquidity</th>
+              <th>Volume 24h</th>
+              <th>Type</th>
+              <th>Resolved</th>
+            </tr>
+          </thead>
+          <tbody id="marketsTable"></tbody>
+        </table>
+      </div>
+      <h3 class="subhead">Selected Market Raw JSON</h3>
+      <pre id="marketRawJson" class="json-box">Select a row to inspect full market payload.</pre>
+    </section>
+
     <section class="card">
       <h2>Recent Bets</h2>
       <div class="table-wrap">

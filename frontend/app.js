@@ -9,6 +9,18 @@ const paths = {
 
 const qs = (id) => document.getElementById(id);
 const ACCOUNT_STORAGE_KEY = "dayli_account";
+const MANIFOLD_BASE_URL = "https://api.manifold.markets";
+
+let lastMarkets = [];
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
 function loadSavedAccount() {
   try {
@@ -217,6 +229,92 @@ function short(text, max = 74) {
   return text.length > max ? `${text.slice(0, max - 1)}...` : text;
 }
 
+function parseMarketProbability(market) {
+  const p = market?.p;
+  if (typeof p === "number") return p;
+  if (typeof market?.probability === "number") return market.probability;
+  if (typeof market?.probability === "object" && market?.probability?.YES != null) {
+    return Number(market.probability.YES);
+  }
+  return null;
+}
+
+function parseMarketLiquidity(market) {
+  return Number(market?.totalLiquidity ?? market?.liquidity ?? 0);
+}
+
+function parseMarketVolume24h(market) {
+  return Number(market?.volume24Hours ?? market?.volume ?? 0);
+}
+
+function showMarketRaw(index) {
+  const raw = qs("marketRawJson");
+  if (!raw) return;
+  if (index < 0 || index >= lastMarkets.length) {
+    raw.textContent = "Select a row to inspect full market payload.";
+    return;
+  }
+  raw.textContent = JSON.stringify(lastMarkets[index], null, 2);
+}
+
+function bindMarketRowClicks() {
+  document.querySelectorAll(".market-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const idx = Number(row.dataset.index);
+      showMarketRaw(idx);
+    });
+  });
+}
+
+async function loadMarketDatapoints(limitOverride) {
+  const status = qs("marketStatusText");
+  const limitInput = qs("marketLimitInput");
+  const limit = Number(limitOverride ?? limitInput?.value ?? 120);
+  const clampedLimit = Math.max(10, Math.min(1000, Number.isNaN(limit) ? 120 : limit));
+  if (limitInput) limitInput.value = String(clampedLimit);
+
+  if (status) status.textContent = `Markets: loading ${clampedLimit}...`;
+
+  try {
+    const response = await fetch(
+      `${MANIFOLD_BASE_URL}/v0/markets?limit=${clampedLimit}&sort=updated-time`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+      throw new Error(`market feed failed (${response.status})`);
+    }
+
+    const markets = await response.json();
+    lastMarkets = Array.isArray(markets) ? markets : [];
+
+    renderRows(
+      "marketsTable",
+      lastMarkets,
+      (m, idx) => `<tr class="market-row" data-index="${idx}">
+        <td>${escapeHtml(short(m.id, 14))}</td>
+        <td>${escapeHtml(short(m.question, 86))}</td>
+        <td>${fmtNum(parseMarketProbability(m), 3)}</td>
+        <td>${fmtNum(parseMarketLiquidity(m), 0)}</td>
+        <td>${fmtNum(parseMarketVolume24h(m), 0)}</td>
+        <td>${escapeHtml(m.outcomeType || "-")}</td>
+        <td>${m.isResolved ? "yes" : "no"}</td>
+      </tr>`
+    );
+
+    showMarketRaw(lastMarkets.length ? 0 : -1);
+    bindMarketRowClicks();
+
+    if (status) {
+      status.textContent = `Markets: loaded ${lastMarkets.length} datapoints-rich records from Manifold.`;
+    }
+  } catch (error) {
+    if (status) status.textContent = `Markets: failed (${error.message})`;
+    renderRows("marketsTable", [], () => "");
+    showMarketRaw(-1);
+  }
+}
+
 function decisionBadge(decision) {
   const isGood = decision === "proposed" || decision === "qualified";
   const klass = isGood ? "good" : "bad";
@@ -342,8 +440,12 @@ function initNavigation() {
   });
 }
 
-qs("refreshBtn").addEventListener("click", loadDashboard);
+qs("refreshBtn").addEventListener("click", async () => {
+  await Promise.all([loadDashboard(), loadMarketDatapoints()]);
+});
+qs("refreshMarketsBtn")?.addEventListener("click", () => loadMarketDatapoints());
 initNavigation();
 initAccountFlow();
 showAccountPanel(false);
 loadDashboard();
+loadMarketDatapoints();
