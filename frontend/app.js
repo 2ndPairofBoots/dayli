@@ -27,7 +27,7 @@ function loadSavedAccount() {
     const raw = localStorage.getItem(ACCOUNT_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed?.displayName || !parsed?.email || !parsed?.apiKey) return null;
+    if (!parsed?.displayName || !parsed?.apiKey) return null;
     return parsed;
   } catch {
     return null;
@@ -81,19 +81,17 @@ async function verifyManifoldApiKey(apiKey) {
 function prefillAccountForm(account) {
   if (!account) return;
   qs("displayNameInput").value = account.displayName;
-  qs("emailInput").value = account.email;
 }
 
 async function onAccountSubmit(event) {
   event.preventDefault();
 
   const displayName = qs("displayNameInput").value.trim();
-  const email = qs("emailInput").value.trim();
   const keyInput = qs("apiKeyInput").value.trim();
   const existing = loadSavedAccount();
   const apiKey = keyInput || existing?.apiKey || "";
 
-  if (!displayName || !email || !apiKey) {
+  if (!displayName || !apiKey) {
     setConnectionStatus("Connection: missing required fields", true);
     return;
   }
@@ -104,7 +102,6 @@ async function onAccountSubmit(event) {
     const me = await verifyManifoldApiKey(apiKey);
     const account = {
       displayName,
-      email,
       apiKey,
       manifoldUser: me.username || me.name || "Connected",
     };
