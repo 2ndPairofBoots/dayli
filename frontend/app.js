@@ -124,14 +124,6 @@ function onDisconnect() {
   setConnectionStatus("Connection: disconnected");
 }
 
-function setActiveTab(tabId) {
-  ["tabDashboard", "tabAccount", "tabConnection"].forEach((id) => {
-    const el = qs(id);
-    if (!el) return;
-    el.classList.toggle("active", id === tabId);
-  });
-}
-
 function showAccountPanel(show) {
   const panel = qs("accountPanel");
   const chip = qs("accountChip");
@@ -149,12 +141,6 @@ function jumpToAccountPanel(focusTargetId) {
       qs(focusTargetId)?.focus();
     }, 150);
   }
-}
-
-function jumpToDashboardSection() {
-  const section = qs("dashboardSection");
-  if (!section) return;
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function parseCsv(text) {
@@ -410,33 +396,11 @@ function initAccountFlow() {
   accountChip?.addEventListener("click", () => {
     const shouldShow = qs("accountPanel")?.hidden ?? true;
     if (shouldShow) {
-      setActiveTab("tabAccount");
       showAccountPanel(true);
       jumpToAccountPanel("displayNameInput");
     } else {
-      setActiveTab("tabDashboard");
       showAccountPanel(false);
     }
-  });
-}
-
-function initNavigation() {
-  qs("tabDashboard")?.addEventListener("click", () => {
-    setActiveTab("tabDashboard");
-    showAccountPanel(false);
-    jumpToDashboardSection();
-  });
-
-  qs("tabAccount")?.addEventListener("click", () => {
-    setActiveTab("tabAccount");
-    showAccountPanel(true);
-    jumpToAccountPanel("displayNameInput");
-  });
-
-  qs("tabConnection")?.addEventListener("click", () => {
-    setActiveTab("tabConnection");
-    showAccountPanel(true);
-    jumpToAccountPanel("apiKeyInput");
   });
 }
 
@@ -444,7 +408,6 @@ qs("refreshBtn").addEventListener("click", async () => {
   await Promise.all([loadDashboard(), loadMarketDatapoints()]);
 });
 qs("refreshMarketsBtn")?.addEventListener("click", () => loadMarketDatapoints());
-initNavigation();
 initAccountFlow();
 showAccountPanel(false);
 loadDashboard();
