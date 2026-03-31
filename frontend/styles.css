@@ -269,6 +269,33 @@ h2 i {
   gap: 20px;
 }
 
+.tabbar {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px;
+}
+
+.tab-btn {
+  border: 1px solid var(--border);
+  background: var(--card-soft);
+  color: var(--text-secondary);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-dim);
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;

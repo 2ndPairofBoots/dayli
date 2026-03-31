@@ -1768,6 +1768,22 @@ function initAccountFlow() {
   });
 }
 
+function setActiveTab(tab) {
+  const tabs = document.querySelectorAll(".tab-btn");
+  const sections = document.querySelectorAll("[data-tab-section]");
+  tabs.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tab));
+  sections.forEach((section) => {
+    section.style.display = section.getAttribute("data-tab-section") === tab ? "" : "none";
+  });
+}
+
+function initTabNavigation() {
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+  });
+  setActiveTab("overview");
+}
+
 qs("refreshBtn").addEventListener("click", async () => {
   const saved = loadSavedAccount();
   if (!saved?.apiKey) {
@@ -1797,6 +1813,7 @@ initBotControls();
 initPositionModal();
 initNotifications();
 initWebSocket();
+initTabNavigation();
 
 const savedAccount = loadSavedAccount();
 if (savedAccount?.apiKey) {
