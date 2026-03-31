@@ -467,6 +467,14 @@ function hideChartTooltip() {
   if (dot) dot.style.display = "none";
 }
 
+function setChartLegendValue(id, text, trendClass = "") {
+  const el = qs(id);
+  if (!el) return;
+  el.classList.remove("gain", "loss");
+  if (trendClass) el.classList.add(trendClass);
+  el.textContent = text;
+}
+
 function showChartTooltip(point, event) {
   const chart = qs("portfolioChart");
   const box = chart?.parentElement;
@@ -479,7 +487,12 @@ function showChartTooltip(point, event) {
   dot.style.display = "block";
 
   const dateLabel = point.ts ? new Date(point.ts).toLocaleString() : "time: n/a";
-  tip.innerHTML = `net worth: ${formatMana(point.value)}<br>${escapeHtml(dateLabel)}`;
+  tip.innerHTML = [
+    `net: ${formatMana(point.value)}`,
+    `balance: ${formatMana(point.balance)}`,
+    `invested: ${formatMana(point.invested)}`,
+    escapeHtml(dateLabel),
+  ].join("<br>");
   tip.style.display = "block";
 
   const rect = box.getBoundingClientRect();
@@ -581,22 +594,37 @@ function initRangeControls() {
 
 function drawPortfolioChart(portfolioRows) {
   const line = qs("chartLine");
+  const balanceLine = qs("chartBalanceLine");
+  const investedLine = qs("chartInvestedLine");
   const fill = qs("chartFill");
-  if (!line || !fill) return;
+  if (!line || !fill || !balanceLine || !investedLine) return;
 
   const rows = filterRowsByRange((portfolioRows || []).slice(-400));
-  const series = rows
+  const pointsData = rows
     .map((r) => {
       const balance = parseNum(r.balance);
       const invested = parseNum(r.invested);
-      return balance + invested;
+      return {
+        ts: parsePortfolioTimestamp(r),
+        balance,
+        invested,
+        net: balance + invested,
+      };
     })
-    .filter((v) => !Number.isNaN(v));
+    .filter((v) => !Number.isNaN(v.net));
 
-  if (series.length < 2) {
+  if (pointsData.length < 2) {
     chartPlotPoints = [];
     line.setAttribute("d", "");
+    balanceLine.setAttribute("d", "");
+    investedLine.setAttribute("d", "");
     fill.setAttribute("d", "");
+    setChartLegendValue("chartLegendNet", "-");
+    setChartLegendValue("chartLegendBalance", "-");
+    setChartLegendValue("chartLegendInvested", "-");
+    setChartLegendValue("chartLegendChange", "-");
+    setChartLegendValue("chartLegendDrawdown", "-");
+    setChartLegendValue("chartLegendPoints", "0");
     hideChartTooltip();
     return;
   }
@@ -605,25 +633,56 @@ function drawPortfolioChart(portfolioRows) {
   const height = 240;
   const padX = 18;
   const padY = 20;
-  const min = Math.min(...series);
-  const max = Math.max(...series);
+  const netSeries = pointsData.map((p) => p.net);
+  const balanceSeries = pointsData.map((p) => p.balance);
+  const investedSeries = pointsData.map((p) => p.invested);
+  const min = Math.min(...netSeries, ...balanceSeries, ...investedSeries);
+  const max = Math.max(...netSeries, ...balanceSeries, ...investedSeries);
   const span = Math.max(1, max - min);
 
-  const points = series.map((v, i) => {
-    const x = padX + (i * (width - padX * 2)) / (series.length - 1);
-    const y = height - padY - ((v - min) / span) * (height - padY * 2);
-    const ts = parsePortfolioTimestamp(rows[i]);
-    return { x, y, value: v, ts };
+  const points = pointsData.map((d, i) => {
+    const x = padX + (i * (width - padX * 2)) / (pointsData.length - 1);
+    const y = height - padY - ((d.net - min) / span) * (height - padY * 2);
+    const yBalance = height - padY - ((d.balance - min) / span) * (height - padY * 2);
+    const yInvested = height - padY - ((d.invested - min) / span) * (height - padY * 2);
+    return { x, y, yBalance, yInvested, value: d.net, balance: d.balance, invested: d.invested, ts: d.ts };
   });
   chartPlotPoints = points;
 
   const linePath = buildLinePath(points);
+  const balancePath = buildLinePath(points.map((p) => ({ x: p.x, y: p.yBalance })));
+  const investedPath = buildLinePath(points.map((p) => ({ x: p.x, y: p.yInvested })));
   const fillPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${
     (height - padY).toFixed(2)
   } L ${points[0].x.toFixed(2)} ${(height - padY).toFixed(2)} Z`;
 
   line.setAttribute("d", linePath);
+  balanceLine.setAttribute("d", balancePath);
+  investedLine.setAttribute("d", investedPath);
   fill.setAttribute("d", fillPath);
+
+  const first = points[0];
+  const last = points[points.length - 1];
+  const change = last.value - first.value;
+  const changePct = first.value !== 0 ? (change / first.value) * 100 : 0;
+  let peak = netSeries[0];
+  let maxDrawdown = 0;
+  netSeries.forEach((v) => {
+    peak = Math.max(peak, v);
+    const dd = peak > 0 ? ((peak - v) / peak) * 100 : 0;
+    if (dd > maxDrawdown) maxDrawdown = dd;
+  });
+
+  setChartLegendValue("chartLegendNet", formatMana(last.value));
+  setChartLegendValue("chartLegendBalance", formatMana(last.balance));
+  setChartLegendValue("chartLegendInvested", formatMana(last.invested));
+  setChartLegendValue(
+    "chartLegendChange",
+    `${change >= 0 ? "+" : ""}${formatMana(change)} (${changePct >= 0 ? "+" : ""}${fmtNum(changePct, 2)}%)`,
+    change >= 0 ? "gain" : "loss"
+  );
+  setChartLegendValue("chartLegendDrawdown", `${fmtNum(maxDrawdown, 2)}%`, maxDrawdown > 10 ? "loss" : "");
+  setChartLegendValue("chartLegendPoints", String(points.length));
 }
 
 async function verifyManifoldApiKey(apiKey) {

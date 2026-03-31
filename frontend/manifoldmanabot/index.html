@@ -242,12 +242,22 @@
       </div>
 
       <div class="chart-box">
-        <svg id="portfolioChart" viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Portfolio net worth chart">
+        <svg id="portfolioChart" viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Portfolio performance chart">
           <path id="chartFill" class="chart-fill" d=""></path>
-          <path id="chartLine" class="chart-line" d=""></path>
+          <path id="chartInvestedLine" class="chart-line chart-line-invested" d=""></path>
+          <path id="chartBalanceLine" class="chart-line chart-line-balance" d=""></path>
+          <path id="chartLine" class="chart-line chart-line-net" d=""></path>
           <circle id="chartHoverDot" class="chart-hover-dot" cx="0" cy="0" r="4"></circle>
         </svg>
         <div id="chartTooltip" class="chart-tooltip" role="status" aria-live="polite"></div>
+      </div>
+      <div class="chart-legend-grid" aria-live="polite">
+        <div class="chart-legend-item"><span class="swatch swatch-net"></span>Net worth: <strong id="chartLegendNet">-</strong></div>
+        <div class="chart-legend-item"><span class="swatch swatch-balance"></span>Balance: <strong id="chartLegendBalance">-</strong></div>
+        <div class="chart-legend-item"><span class="swatch swatch-invested"></span>Invested: <strong id="chartLegendInvested">-</strong></div>
+        <div class="chart-legend-item">Range change: <strong id="chartLegendChange">-</strong></div>
+        <div class="chart-legend-item">Max drawdown: <strong id="chartLegendDrawdown">-</strong></div>
+        <div class="chart-legend-item">Data points: <strong id="chartLegendPoints">-</strong></div>
       </div>
 
       <div class="range-row" role="group" aria-label="Chart range">
