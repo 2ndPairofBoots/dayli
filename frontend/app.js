@@ -29,6 +29,8 @@ let chartPlotPoints = [];
 let searchDebounceTimer = null;
 let ws = null;
 let previousProbByMarket = new Map();
+let lastOpportunityAlertAt = 0;
+let lastOpportunityMarketId = null;
 
 function setTrendClass(id, value) {
   const el = qs(id);
@@ -122,6 +124,16 @@ function clearDataViews() {
   showMarketRaw(-1);
 }
 
+function setLoadingState(loading) {
+  const ids = ["balanceValue", "investedValue", "pnlValue", "netWorthValue", "openHoldingsValue"];
+  ids.forEach((id) => {
+    const el = qs(id);
+    if (!el) return;
+    el.classList.toggle("loading-skeleton", loading);
+    if (loading) el.textContent = "loading";
+  });
+}
+
 function updateNetWorth() {
   const balance = Number.isFinite(snapshotMetrics.balance) ? snapshotMetrics.balance : null;
   const invested = Number.isFinite(snapshotMetrics.invested) ? snapshotMetrics.invested : null;
@@ -154,6 +166,7 @@ async function loadConnectedSnapshot(apiKey) {
 }
 
 async function loadAllData(apiKey) {
+  setLoadingState(true);
   await loadDashboard();
   await Promise.all([
     loadMarketDatapoints(),
@@ -164,6 +177,7 @@ async function loadAllData(apiKey) {
 
   // Calculate analytics after all data is loaded
   calculatePerformanceMetrics();
+  setLoadingState(false);
 }
 
 async function fetchCurrentUser(apiKey) {
@@ -889,11 +903,23 @@ function applyMarketFiltersAndSort() {
       case "created":
         return (b.createdTime || 0) - (a.createdTime || 0);
       case "trending":
-        // Trending = volume × recency score
+        // Weighted trending score: volume 40%, recency 30%, delta 20%, activity 10%
         const recencyA = Math.max(0, 1 - (Date.now() - (a.createdTime || 0)) / (7 * 24 * 60 * 60 * 1000));
         const recencyB = Math.max(0, 1 - (Date.now() - (b.createdTime || 0)) / (7 * 24 * 60 * 60 * 1000));
-        const trendScoreA = parseMarketVolume24h(a) * (1 + recencyA * 2);
-        const trendScoreB = parseMarketVolume24h(b) * (1 + recencyB * 2);
+        const deltaA = Math.abs(Number(formatProbDelta(a.id).replace("%", "")) || 0) / 100;
+        const deltaB = Math.abs(Number(formatProbDelta(b.id).replace("%", "")) || 0) / 100;
+        const activityA = parseMarketLiquidity(a) > 0 ? parseMarketVolume24h(a) / parseMarketLiquidity(a) : 0;
+        const activityB = parseMarketLiquidity(b) > 0 ? parseMarketVolume24h(b) / parseMarketLiquidity(b) : 0;
+        const trendScoreA =
+          0.4 * parseMarketVolume24h(a) +
+          0.3 * (recencyA * 1000) +
+          0.2 * (deltaA * 1000) +
+          0.1 * (activityA * 1000);
+        const trendScoreB =
+          0.4 * parseMarketVolume24h(b) +
+          0.3 * (recencyB * 1000) +
+          0.2 * (deltaB * 1000) +
+          0.1 * (activityB * 1000);
         return trendScoreB - trendScoreA;
       default:
         return 0;
@@ -984,6 +1010,7 @@ function initMarketDiscoveryControls() {
   const categoryFilter = qs("categoryFilter");
   const sortControl = qs("sortControl");
   const clearBtn = qs("clearFilters");
+  const storageKey = "dayli_market_filters";
 
   // Search with debouncing
   if (searchInput) {
@@ -991,22 +1018,80 @@ function initMarketDiscoveryControls() {
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(() => {
         applyMarketFiltersAndSort();
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            search: searchInput.value,
+            status: statusFilter?.value,
+            liquidity: liquidityFilter?.value,
+            category: categoryFilter?.value,
+            sort: sortControl?.value,
+          })
+        );
       }, 300);
     });
   }
 
   // Filters
   if (statusFilter) {
-    statusFilter.addEventListener("change", applyMarketFiltersAndSort);
+    statusFilter.addEventListener("change", () => {
+      applyMarketFiltersAndSort();
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          search: searchInput?.value || "",
+          status: statusFilter.value,
+          liquidity: liquidityFilter?.value,
+          category: categoryFilter?.value,
+          sort: sortControl?.value,
+        })
+      );
+    });
   }
   if (liquidityFilter) {
-    liquidityFilter.addEventListener("change", applyMarketFiltersAndSort);
+    liquidityFilter.addEventListener("change", () => {
+      applyMarketFiltersAndSort();
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          search: searchInput?.value || "",
+          status: statusFilter?.value,
+          liquidity: liquidityFilter.value,
+          category: categoryFilter?.value,
+          sort: sortControl?.value,
+        })
+      );
+    });
   }
   if (categoryFilter) {
-    categoryFilter.addEventListener("change", applyMarketFiltersAndSort);
+    categoryFilter.addEventListener("change", () => {
+      applyMarketFiltersAndSort();
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          search: searchInput?.value || "",
+          status: statusFilter?.value,
+          liquidity: liquidityFilter?.value,
+          category: categoryFilter.value,
+          sort: sortControl?.value,
+        })
+      );
+    });
   }
   if (sortControl) {
-    sortControl.addEventListener("change", applyMarketFiltersAndSort);
+    sortControl.addEventListener("change", () => {
+      applyMarketFiltersAndSort();
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          search: searchInput?.value || "",
+          status: statusFilter?.value,
+          liquidity: liquidityFilter?.value,
+          category: categoryFilter?.value,
+          sort: sortControl.value,
+        })
+      );
+    });
   }
 
   // Clear filters
@@ -1018,8 +1103,20 @@ function initMarketDiscoveryControls() {
       if (categoryFilter) categoryFilter.value = "all";
       if (sortControl) sortControl.value = "volume";
       applyMarketFiltersAndSort();
+      localStorage.removeItem(storageKey);
     });
   }
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+    if (saved) {
+      if (searchInput) searchInput.value = saved.search || "";
+      if (statusFilter && saved.status) statusFilter.value = saved.status;
+      if (liquidityFilter && saved.liquidity) liquidityFilter.value = saved.liquidity;
+      if (categoryFilter && saved.category) categoryFilter.value = saved.category;
+      if (sortControl && saved.sort) sortControl.value = saved.sort;
+    }
+  } catch {}
 }
 
 function formatProbDelta(marketId) {
@@ -1081,7 +1178,18 @@ function renderTrendingMarkets() {
     const p = Number(parseMarketProbability(m));
     return !Number.isNaN(p) && Math.abs(50 - p * 100) >= (botSettings.alertEdgeThreshold || 6);
   });
-  if (edgeMarkets.length) notifyOpportunity(edgeMarkets[0]);
+  if (edgeMarkets.length) {
+    const now = Date.now();
+    const candidate = edgeMarkets[0];
+    if (
+      now - lastOpportunityAlertAt > 90_000 &&
+      (lastOpportunityMarketId !== candidate.id || now - lastOpportunityAlertAt > 300_000)
+    ) {
+      notifyOpportunity(candidate);
+      lastOpportunityAlertAt = now;
+      lastOpportunityMarketId = candidate.id;
+    }
+  }
 }
 
 function renderVolumeHeatmap() {
@@ -1151,9 +1259,23 @@ function openPositionModal(idx) {
         <div><strong>P&L:</strong> <span class="${h.pnl >= 0 ? "gain" : "loss"}">${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</span></div>
       </div>
     </div>
-    <button class="btn btn-danger" onclick="openQuickSellPanel(${idx})"><i class="fas fa-arrow-down"></i> Quick Exit</button>
+    <div class="trade-amount-presets">
+      <button class="btn btn-danger btn-preset" onclick="openQuickSellPartial(${idx},0.25)">Sell 25%</button>
+      <button class="btn btn-danger btn-preset" onclick="openQuickSellPartial(${idx},0.5)">Sell 50%</button>
+      <button class="btn btn-danger btn-preset" onclick="openQuickSellPartial(${idx},1)">Sell 100%</button>
+    </div>
   `;
   modal.style.display = "flex";
+}
+
+function openQuickSellPartial(idx, ratio) {
+  const h = lastHoldings[idx];
+  if (!h) return;
+  openQuickSellPanel(idx);
+  const amount = Math.max(1, Math.floor(parseNum(h.shares) * parseNum(h.avgPrice) * ratio));
+  const input = qs("tradeAmount");
+  if (input) input.value = String(amount);
+  calculateTradePreview();
 }
 
 function showToast(message) {
@@ -1414,6 +1536,16 @@ function calculateTradePreview() {
   qs("tradePreview").style.display = "block";
 }
 
+function applyTradeAmountPreset(preset) {
+  const balance = Math.max(0, parseNum(snapshotMetrics.balance));
+  const input = qs("tradeAmount");
+  if (!input) return;
+  if (preset === "quarter") input.value = String(Math.max(1, Math.floor(balance * 0.25)));
+  if (preset === "half") input.value = String(Math.max(1, Math.floor(balance * 0.5)));
+  if (preset === "max") input.value = String(Math.max(1, Math.floor(balance)));
+  calculateTradePreview();
+}
+
 async function executeTrade(event) {
   event.preventDefault();
   
@@ -1486,6 +1618,10 @@ function initTradePanel() {
   qs("tradeAmount")?.addEventListener("input", () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(calculateTradePreview, 500);
+  });
+
+  document.querySelectorAll("[data-amount-preset]").forEach((btn) => {
+    btn.addEventListener("click", () => applyTradeAmountPreset(btn.getAttribute("data-amount-preset")));
   });
 }
 
@@ -1644,6 +1780,13 @@ function calculatePerformanceMetrics() {
   qs("sharpeValue").textContent = fmtNum(sharpe, 2);
   qs("avgTradeValue").textContent = `M$${fmtNum(avgTrade, 2)}`;
   qs("avgTradeValue").className = `analytic-value ${avgTrade >= 0 ? "gain" : "loss"}`;
+  const coach = qs("analyticsCoachText");
+  if (coach) {
+    const roiDir = roi >= 0 ? "up" : "down";
+    const winMsg = winRate >= 55 ? "strong hit-rate" : "room to tighten entries";
+    const riskMsg = sharpe >= 1 ? "risk-adjusted returns look healthy" : "risk-adjusted risk is elevated";
+    coach.textContent = `You're ${roiDir} (${fmtNum(roi, 2)}% ROI), with ${winMsg}; ${riskMsg}.`;
+  }
   renderPnlBreakdown();
   renderBestWorstTrades();
 }
@@ -1766,6 +1909,15 @@ function initAccountFlow() {
     if (!panel) return;
     showAccountPanel(panel.hidden);
   });
+
+  const connectCtaBtn = qs("connectCtaBtn");
+  if (connectCtaBtn) {
+    connectCtaBtn.style.display = saved?.apiKey ? "none" : "";
+    connectCtaBtn.addEventListener("click", () => {
+      showAccountPanel(true);
+      window.location.hash = "#/overview";
+    });
+  }
 }
 
 function setActiveTab(tab) {
@@ -1800,6 +1952,16 @@ function initTabNavigation() {
     window.location.hash = "#/overview";
   } else {
     applyFromHash();
+  }
+
+  // Persist active route
+  window.addEventListener("hashchange", () => {
+    localStorage.setItem("dayli_active_route", window.location.hash || "#/overview");
+  });
+
+  const savedRoute = localStorage.getItem("dayli_active_route");
+  if (savedRoute && !window.location.hash) {
+    window.location.hash = savedRoute;
   }
 }
 
@@ -1846,3 +2008,4 @@ if (savedAccount?.apiKey) {
 }
 
 window.openPositionModal = openPositionModal;
+window.openQuickSellPartial = openQuickSellPartial;

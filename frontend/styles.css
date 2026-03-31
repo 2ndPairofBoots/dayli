@@ -1398,6 +1398,32 @@ tr:last-child td {
   gap: 12px;
 }
 
+.trade-amount-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-preset {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.loading-skeleton {
+  position: relative;
+  overflow: hidden;
+  color: transparent !important;
+  background: linear-gradient(90deg, #141c26 0%, #1e2a3a 45%, #141c26 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s linear infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
 /* Quick sell button */
 .btn-quick-sell {
   padding: 6px 12px;
