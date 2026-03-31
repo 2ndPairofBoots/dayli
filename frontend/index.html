@@ -123,6 +123,13 @@
               <input type="number" id="maxDrawdown" min="5" max="50" step="5" value="20" class="risk-input">
               <small>Stop bot if portfolio drops > this %</small>
             </label>
+            <label class="risk-label">
+              <span>Alert Edge Threshold (%)</span>
+              <input type="number" id="alertEdgeThreshold" min="1" max="25" step="1" value="6" class="risk-input">
+            </label>
+            <label class="risk-label">
+              <span><input type="checkbox" id="soundAlerts" checked> Enable Sound Alerts</span>
+            </label>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-save"></i> Save Settings
             </button>
@@ -277,6 +284,14 @@
       <p id="arbStatus" class="status">No arbitrage opportunities detected.</p>
     </section>
 
+    <section class="card" id="trendingSection" style="display: none;">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-fire"></i> Trending Markets</h2>
+        <span class="badge-count" id="trendingCount">0 markets</span>
+      </div>
+      <div id="trendingMarketsList" class="breaking-news-grid"></div>
+    </section>
+
     <!-- Breaking News Section -->
     <section class="card breaking-news-card" id="breakingNewsSection" style="display: none;">
       <div class="section-header-inline">
@@ -353,6 +368,17 @@
               <option value="trending">Trending (Volume × Recency)</option>
             </select>
           </label>
+          <label class="filter-group">
+            <i class="fas fa-tags"></i>
+            <select id="categoryFilter" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="Crypto">Crypto</option>
+              <option value="Politics">Politics</option>
+              <option value="Sports">Sports</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="General">General</option>
+            </select>
+          </label>
 
           <button id="clearFilters" class="btn-filter-clear" type="button">
             <i class="fas fa-times"></i> Clear
@@ -368,10 +394,13 @@
               <th>ID</th>
               <th>Question</th>
               <th>Prob</th>
+              <th>Δ24h</th>
+              <th>Trend</th>
               <th>Liquidity</th>
               <th>Volume 24h</th>
               <th>Type</th>
               <th>Resolved</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="marketsTable"></tbody>
@@ -397,6 +426,52 @@
           </thead>
           <tbody id="betsTable"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="card two-col">
+      <div>
+        <h2><i class="fas fa-table"></i> P&L Breakdown</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Trades</th>
+                <th>P&L</th>
+                <th>ROI</th>
+              </tr>
+            </thead>
+            <tbody id="pnlBreakdownTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2><i class="fas fa-medal"></i> Best / Worst Trades</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Market</th>
+                <th>P&L</th>
+              </tr>
+            </thead>
+            <tbody id="bestWorstTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card two-col">
+      <div>
+        <h2><i class="fas fa-newspaper"></i> Market News Feed</h2>
+        <div id="newsFeedList" class="breaking-news-grid"></div>
+      </div>
+      <div>
+        <h2><i class="fas fa-th"></i> Volume Heatmap</h2>
+        <canvas id="volumeHeatmap" width="520" height="260"></canvas>
+        <p class="muted">Darker cells represent higher relative liquidity/volume.</p>
       </div>
     </section>
 
@@ -518,6 +593,25 @@
     </div>
   </div>
 
+  <div id="positionModal" class="trade-panel" style="display: none;">
+    <div class="trade-panel-overlay" id="positionModalOverlay"></div>
+    <div class="trade-panel-content">
+      <div class="trade-panel-header">
+        <h2><i class="fas fa-briefcase"></i> Position Details</h2>
+        <button class="trade-panel-close" id="positionModalClose" type="button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="trade-panel-body">
+        <div id="positionModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
   <script src="app.js"></script>
 </body>
 </html>
+
+

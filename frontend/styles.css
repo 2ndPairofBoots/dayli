@@ -1372,6 +1372,33 @@ tr:last-child td {
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
+.btn-trade {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sparkline-svg {
+  width: 64px;
+  height: 20px;
+  display: block;
+}
+
+.delta-up {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.delta-down {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 /* Bot Control Panel */
 .bot-control-card {
   background: linear-gradient(135deg, rgba(79, 209, 178, 0.05) 0%, var(--card) 100%);
@@ -1646,4 +1673,24 @@ tr:last-child td {
   .edge-input-group {
     grid-template-columns: 1fr;
   }
+}
+
+.toast-container {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2000;
+  display: grid;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--brand);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 260px;
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
 }

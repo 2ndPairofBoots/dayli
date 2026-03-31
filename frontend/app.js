@@ -27,6 +27,8 @@ const snapshotMetrics = {
 };
 let chartPlotPoints = [];
 let searchDebounceTimer = null;
+let ws = null;
+let previousProbByMarket = new Map();
 
 function setTrendClass(id, value) {
   const el = qs(id);
@@ -403,6 +405,9 @@ async function loadCurrentHoldings(apiKey) {
         <td>${formatMana(h.value)}</td>
         <td class="${h.pnl >= 0 ? "gain" : "loss"}">${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</td>
         <td>
+          <button class="btn-trade" onclick="openPositionModal(${idx})">
+            <i class="fas fa-info-circle"></i> View
+          </button>
           <button class="btn-quick-sell" data-holding-index="${idx}" onclick="openQuickSellPanel(${idx})">
             <i class="fas fa-arrow-down"></i> Sell
           </button>
@@ -768,14 +773,23 @@ function parseMarketVolume24h(market) {
   return Number(market?.volume24Hours ?? market?.volume ?? 0);
 }
 
+function inferCategory(market) {
+  const q = String(market?.question || "").toLowerCase();
+  if (/bitcoin|btc|eth|crypto|solana|token/.test(q)) return "Crypto";
+  if (/election|president|senate|trump|biden|congress|politic/.test(q)) return "Politics";
+  if (/nba|nfl|mlb|nhl|tournament|match|cup|sports|game/.test(q)) return "Sports";
+  if (/movie|tv|oscar|music|celebrity|entertain/.test(q)) return "Entertainment";
+  return "General";
+}
+
 function showMarketRaw(index) {
   const raw = qs("marketRawJson");
   if (!raw) return;
-  if (index < 0 || index >= lastMarkets.length) {
+  if (index < 0 || index >= filteredMarkets.length) {
     raw.textContent = "Select a row to inspect full market payload.";
     return;
   }
-  raw.textContent = JSON.stringify(lastMarkets[index], null, 2);
+  raw.textContent = JSON.stringify(filteredMarkets[index], null, 2);
 }
 
 function bindMarketRowClicks() {
@@ -816,6 +830,7 @@ async function loadMarketDatapoints(limitOverride) {
     }
 
     const markets = await response.json();
+    previousProbByMarket = new Map(lastMarkets.map((m) => [m.id, Number(parseMarketProbability(m))]));
     lastMarkets = Array.isArray(markets) ? markets : [];
     filteredMarkets = lastMarkets;
 
@@ -837,6 +852,7 @@ function applyMarketFiltersAndSort() {
   const searchTerm = qs("marketSearchInput")?.value?.toLowerCase() || "";
   const statusFilter = qs("statusFilter")?.value || "all";
   const liquidityFilter = qs("liquidityFilter")?.value || "all";
+  const categoryFilter = qs("categoryFilter")?.value || "all";
   const sortBy = qs("sortControl")?.value || "volume";
 
   // Filter markets
@@ -856,6 +872,7 @@ function applyMarketFiltersAndSort() {
     if (liquidityFilter === "high" && liquidity < 1000) return false;
     if (liquidityFilter === "medium" && (liquidity < 100 || liquidity >= 1000)) return false;
     if (liquidityFilter === "low" && liquidity >= 100) return false;
+    if (categoryFilter !== "all" && inferCategory(market) !== categoryFilter) return false;
 
     return true;
   });
@@ -889,22 +906,28 @@ function applyMarketFiltersAndSort() {
     filteredMarkets,
     (m, idx) => `<tr class="market-row" data-index="${idx}">
       <td>${escapeHtml(short(m.id, 14))}</td>
-      <td>${escapeHtml(short(m.question, 86))}</td>
+      <td>${escapeHtml(short(m.question, 86))}<br><span class="badge">${escapeHtml(inferCategory(m))}</span></td>
       <td>${fmtNum(parseMarketProbability(m), 3)}</td>
+      <td class="${getProbDeltaClass(m.id)}">${formatProbDelta(m.id)}</td>
+      <td>${renderMarketSparkline(m.id)}</td>
       <td>${fmtNum(parseMarketLiquidity(m), 0)}</td>
       <td>${fmtNum(parseMarketVolume24h(m), 0)}</td>
       <td>${escapeHtml(m.outcomeType || "-")}</td>
       <td>${m.isResolved ? "yes" : "no"}</td>
+      <td><button class="btn-trade" data-index="${idx}">Trade</button></td>
     </tr>`
   );
 
   showMarketRaw(filteredMarkets.length ? 0 : -1);
   bindMarketRowClicks();
+  renderTrendingMarkets();
+  renderVolumeHeatmap();
+  renderNewsFeed();
 
   // Update search count
   const countEl = qs("searchResultCount");
   if (countEl) {
-    if (searchTerm || statusFilter !== "all" || liquidityFilter !== "all") {
+    if (searchTerm || statusFilter !== "all" || liquidityFilter !== "all" || categoryFilter !== "all") {
       countEl.textContent = `${filteredMarkets.length} of ${lastMarkets.length}`;
       countEl.style.display = "block";
     } else {
@@ -958,6 +981,7 @@ function initMarketDiscoveryControls() {
   const searchInput = qs("marketSearchInput");
   const statusFilter = qs("statusFilter");
   const liquidityFilter = qs("liquidityFilter");
+  const categoryFilter = qs("categoryFilter");
   const sortControl = qs("sortControl");
   const clearBtn = qs("clearFilters");
 
@@ -978,6 +1002,9 @@ function initMarketDiscoveryControls() {
   if (liquidityFilter) {
     liquidityFilter.addEventListener("change", applyMarketFiltersAndSort);
   }
+  if (categoryFilter) {
+    categoryFilter.addEventListener("change", applyMarketFiltersAndSort);
+  }
   if (sortControl) {
     sortControl.addEventListener("change", applyMarketFiltersAndSort);
   }
@@ -988,10 +1015,199 @@ function initMarketDiscoveryControls() {
       if (searchInput) searchInput.value = "";
       if (statusFilter) statusFilter.value = "open";
       if (liquidityFilter) liquidityFilter.value = "all";
+      if (categoryFilter) categoryFilter.value = "all";
       if (sortControl) sortControl.value = "volume";
       applyMarketFiltersAndSort();
     });
   }
+}
+
+function formatProbDelta(marketId) {
+  const prev = previousProbByMarket.get(marketId);
+  const curr = filteredMarkets.find((m) => m.id === marketId);
+  if (!curr) return "-";
+  const cp = Number(parseMarketProbability(curr));
+  if (prev == null || Number.isNaN(cp)) return "-";
+  const d = (cp - prev) * 100;
+  return `${d >= 0 ? "+" : ""}${fmtNum(d, 2)}%`;
+}
+
+function getProbDeltaClass(marketId) {
+  const prev = previousProbByMarket.get(marketId);
+  const curr = filteredMarkets.find((m) => m.id === marketId);
+  if (!curr || prev == null) return "";
+  const d = Number(parseMarketProbability(curr)) - prev;
+  if (d > 0) return "delta-up";
+  if (d < 0) return "delta-down";
+  return "";
+}
+
+function renderMarketSparkline(marketId) {
+  const curr = filteredMarkets.find((m) => m.id === marketId);
+  const p = Number(parseMarketProbability(curr));
+  if (Number.isNaN(p)) return "-";
+  const x = [0, 16, 32, 48, 64];
+  const base = [p - 0.04, p - 0.02, p - 0.01, p + 0.01, p].map((v) => Math.max(0.01, Math.min(0.99, v)));
+  const points = base.map((v, i) => `${x[i]},${20 - v * 20}`).join(" ");
+  return `<svg class="sparkline-svg" viewBox="0 0 64 20"><polyline fill="none" stroke="#4fd1b2" stroke-width="2" points="${points}" /></svg>`;
+}
+
+function renderTrendingMarkets() {
+  const section = qs("trendingSection");
+  const list = qs("trendingMarketsList");
+  const count = qs("trendingCount");
+  if (!section || !list || !count) return;
+  const top = [...filteredMarkets]
+    .sort((a, b) => parseMarketVolume24h(b) - parseMarketVolume24h(a))
+    .slice(0, 6);
+  if (!top.length) {
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "block";
+  count.textContent = `${top.length} markets`;
+  list.innerHTML = top
+    .map(
+      (m, idx) => `<div class="breaking-news-item" data-market-index="${idx}">
+      <div class="breaking-news-question">${escapeHtml(short(m.question, 100))}</div>
+      <div class="breaking-news-meta">
+        <span class="breaking-news-prob">${fmtNum(parseMarketProbability(m), 1)}%</span>
+        <span class="breaking-news-volume"><i class="fas fa-chart-line"></i> M$${fmtNum(parseMarketVolume24h(m), 0)}</span>
+      </div>
+    </div>`
+    )
+    .join("");
+  const edgeMarkets = top.filter((m) => {
+    const p = Number(parseMarketProbability(m));
+    return !Number.isNaN(p) && Math.abs(50 - p * 100) >= (botSettings.alertEdgeThreshold || 6);
+  });
+  if (edgeMarkets.length) notifyOpportunity(edgeMarkets[0]);
+}
+
+function renderVolumeHeatmap() {
+  const canvas = qs("volumeHeatmap");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const rows = 4;
+  const cols = 6;
+  const data = [...filteredMarkets].slice(0, rows * cols);
+  const maxVol = Math.max(1, ...data.map((m) => parseMarketVolume24h(m)));
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / rows;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  data.forEach((m, i) => {
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    const vol = parseMarketVolume24h(m) / maxVol;
+    ctx.fillStyle = `rgba(79, 209, 178, ${0.15 + vol * 0.75})`;
+    ctx.fillRect(c * cellW + 2, r * cellH + 2, cellW - 4, cellH - 4);
+    ctx.fillStyle = "#e8eef7";
+    ctx.font = "11px Manrope";
+    ctx.fillText(`${fmtNum(parseMarketVolume24h(m), 0)}`, c * cellW + 8, r * cellH + 16);
+  });
+}
+
+function renderNewsFeed() {
+  const feed = qs("newsFeedList");
+  if (!feed) return;
+  const top = [...filteredMarkets]
+    .sort((a, b) => parseMarketVolume24h(b) - parseMarketVolume24h(a))
+    .slice(0, 4);
+  feed.innerHTML = top
+    .map(
+      (m) => `<div class="breaking-news-item">
+      <div class="breaking-news-question">${escapeHtml(short(m.question, 90))}</div>
+      <div class="breaking-news-meta">
+        <span><i class="fas fa-newspaper"></i> Market signal</span>
+        <span class="breaking-news-volume">Vol M$${fmtNum(parseMarketVolume24h(m), 0)}</span>
+      </div>
+    </div>`
+    )
+    .join("");
+}
+
+function initPositionModal() {
+  qs("positionModalClose")?.addEventListener("click", () => (qs("positionModal").style.display = "none"));
+  qs("positionModalOverlay")?.addEventListener("click", () => (qs("positionModal").style.display = "none"));
+}
+
+function openPositionModal(idx) {
+  const h = lastHoldings[idx];
+  if (!h) return;
+  const modal = qs("positionModal");
+  const body = qs("positionModalBody");
+  if (!modal || !body) return;
+  body.innerHTML = `
+    <div class="trade-market-info">
+      <p class="trade-market-question">${escapeHtml(h.marketQuestion)}</p>
+      <div class="trade-market-meta">
+        <div><strong>Outcome:</strong> ${escapeHtml(h.outcome)}</div>
+        <div><strong>Shares:</strong> ${formatMana(h.shares)}</div>
+        <div><strong>Avg Price:</strong> M$${formatMana(h.avgPrice)}</div>
+      </div>
+      <div class="trade-market-meta">
+        <div><strong>Value:</strong> M$${formatMana(h.value)}</div>
+        <div><strong>P&L:</strong> <span class="${h.pnl >= 0 ? "gain" : "loss"}">${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</span></div>
+      </div>
+    </div>
+    <button class="btn btn-danger" onclick="openQuickSellPanel(${idx})"><i class="fas fa-arrow-down"></i> Quick Exit</button>
+  `;
+  modal.style.display = "flex";
+}
+
+function showToast(message) {
+  const c = qs("toastContainer");
+  if (!c) return;
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = message;
+  c.appendChild(el);
+  setTimeout(() => {
+    if (el.parentNode) el.parentNode.removeChild(el);
+  }, 4000);
+}
+
+function initNotifications() {
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+function notifyOpportunity(market) {
+  const msg = `Opportunity: ${short(market.question, 60)} @ ${fmtNum(parseMarketProbability(market), 1)}%`;
+  showToast(msg);
+  if (botSettings.soundAlerts) {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.value = 0.04;
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + 0.12);
+    } catch {}
+  }
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Dayli Opportunity", { body: msg });
+  }
+}
+
+function initWebSocket() {
+  try {
+    // Placeholder public stream endpoint; falls back silently.
+    ws = new WebSocket("wss://manifold.markets/api/v0/ws");
+    ws.onopen = () => showToast("Realtime feed connected");
+    ws.onmessage = () => {
+      // On any update, refresh market filters quickly.
+      if (lastMarkets.length) applyMarketFiltersAndSort();
+    };
+    ws.onclose = () => setTimeout(initWebSocket, 5000);
+    ws.onerror = () => {};
+  } catch {}
 }
 
 function decisionBadge(decision) {
@@ -1281,7 +1497,9 @@ let botSettings = {
   kellyMultiplier: 0.25,
   maxBetSize: 100,
   minEdge: 5,
-  maxDrawdown: 20
+  maxDrawdown: 20,
+  alertEdgeThreshold: 6,
+  soundAlerts: true
 };
 
 let botStatus = {
@@ -1351,11 +1569,15 @@ function saveRiskSettings(event) {
   botSettings.maxBetSize = parseFloat(qs("maxBetSize")?.value || "100");
   botSettings.minEdge = parseFloat(qs("minEdge")?.value || "5");
   botSettings.maxDrawdown = parseFloat(qs("maxDrawdown")?.value || "20");
+  botSettings.alertEdgeThreshold = parseFloat(qs("alertEdgeThreshold")?.value || "6");
+  botSettings.soundAlerts = !!qs("soundAlerts")?.checked;
 
   // Save to localStorage
   localStorage.setItem("dayli_bot_settings", JSON.stringify(botSettings));
 
-  alert(`Risk settings saved!\nKelly: ${botSettings.kellyMultiplier}x\nMax Bet: M$${botSettings.maxBetSize}\nMin Edge: ${botSettings.minEdge}%\nMax Drawdown: ${botSettings.maxDrawdown}%`);
+  showToast(
+    `Saved risk settings: Kelly ${botSettings.kellyMultiplier}x, Max Bet M$${botSettings.maxBetSize}, Min Edge ${botSettings.minEdge}%`
+  );
 }
 
 function loadRiskSettings() {
@@ -1367,6 +1589,8 @@ function loadRiskSettings() {
       qs("maxBetSize").value = botSettings.maxBetSize;
       qs("minEdge").value = botSettings.minEdge;
       qs("maxDrawdown").value = botSettings.maxDrawdown;
+      if (qs("alertEdgeThreshold")) qs("alertEdgeThreshold").value = botSettings.alertEdgeThreshold ?? 6;
+      if (qs("soundAlerts")) qs("soundAlerts").checked = botSettings.soundAlerts !== false;
     }
   } catch (e) {
     console.error("Failed to load bot settings", e);
@@ -1390,13 +1614,23 @@ function calculatePerformanceMetrics() {
     roi = (profit / totalInvested) * 100;
   }
 
-  // Win rate (would need resolved bets data from backend)
-  // Placeholder: 0%
-  const winRate = 0;
+  // Win rate estimated from current holdings PnL sign
+  const wins = lastHoldings.filter((h) => parseNum(h.pnl) > 0).length;
+  const total = Math.max(1, lastHoldings.length);
+  const winRate = (wins / total) * 100;
 
-  // Sharpe ratio (would need daily returns data)
-  // Placeholder
-  const sharpe = 0;
+  // Sharpe approximation from portfolio CSV returns
+  const returns = [];
+  for (let i = 1; i < lastPortfolioRows.length; i++) {
+    const prev = parseNum(lastPortfolioRows[i - 1].balance) + parseNum(lastPortfolioRows[i - 1].invested);
+    const curr = parseNum(lastPortfolioRows[i].balance) + parseNum(lastPortfolioRows[i].invested);
+    if (prev > 0) returns.push((curr - prev) / prev);
+  }
+  const mean = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+  const variance =
+    returns.length > 1 ? returns.reduce((a, r) => a + (r - mean) ** 2, 0) / (returns.length - 1) : 0;
+  const std = Math.sqrt(Math.max(variance, 0));
+  const sharpe = std > 0 ? (mean / std) * Math.sqrt(252) : 0;
 
   // Average trade (would need bet history)
   const avgTrade = lastHoldings.length > 0 
@@ -1410,6 +1644,47 @@ function calculatePerformanceMetrics() {
   qs("sharpeValue").textContent = fmtNum(sharpe, 2);
   qs("avgTradeValue").textContent = `M$${fmtNum(avgTrade, 2)}`;
   qs("avgTradeValue").className = `analytic-value ${avgTrade >= 0 ? "gain" : "loss"}`;
+  renderPnlBreakdown();
+  renderBestWorstTrades();
+}
+
+function renderPnlBreakdown() {
+  const rows = [];
+  const now = Date.now();
+  const windows = [
+    { label: "1D", ms: 24 * 60 * 60 * 1000 },
+    { label: "1W", ms: 7 * 24 * 60 * 60 * 1000 },
+    { label: "1M", ms: 30 * 24 * 60 * 60 * 1000 },
+  ];
+  windows.forEach((w) => {
+    const recent = lastPortfolioRows.filter((r) => {
+      const ts = parsePortfolioTimestamp(r);
+      return ts != null && ts >= now - w.ms;
+    });
+    const first = recent[0];
+    const last = recent[recent.length - 1];
+    const start = first ? parseNum(first.balance) + parseNum(first.invested) : 0;
+    const end = last ? parseNum(last.balance) + parseNum(last.invested) : 0;
+    const pnl = end - start;
+    const roi = start > 0 ? (pnl / start) * 100 : 0;
+    rows.push({ period: w.label, trades: "-", pnl, roi });
+  });
+  renderRows(
+    "pnlBreakdownTable",
+    rows,
+    (r) => `<tr><td>${r.period}</td><td>${r.trades}</td><td class="${r.pnl >= 0 ? "gain" : "loss"}">${r.pnl >= 0 ? "+" : ""}${fmtNum(r.pnl, 2)}</td><td class="${r.roi >= 0 ? "gain" : "loss"}">${r.roi >= 0 ? "+" : ""}${fmtNum(r.roi, 2)}%</td></tr>`
+  );
+}
+
+function renderBestWorstTrades() {
+  const sorted = [...lastHoldings].sort((a, b) => parseNum(b.pnl) - parseNum(a.pnl));
+  const best = sorted.slice(0, 3).map((x) => ({ type: "Best", ...x }));
+  const worst = sorted.slice(-3).reverse().map((x) => ({ type: "Worst", ...x }));
+  renderRows(
+    "bestWorstTable",
+    [...best, ...worst],
+    (r) => `<tr><td>${r.type}</td><td>${escapeHtml(short(r.marketQuestion, 44))}</td><td class="${parseNum(r.pnl) >= 0 ? "gain" : "loss"}">${parseNum(r.pnl) >= 0 ? "+" : ""}${fmtNum(parseNum(r.pnl), 2)}</td></tr>`
+  );
 }
 
 // Kelly Edge Calculator
@@ -1519,6 +1794,9 @@ initChartHover();
 initMarketDiscoveryControls();
 initTradePanel();
 initBotControls();
+initPositionModal();
+initNotifications();
+initWebSocket();
 
 const savedAccount = loadSavedAccount();
 if (savedAccount?.apiKey) {
@@ -1530,3 +1808,5 @@ if (savedAccount?.apiKey) {
   setText("statusText", "Status: connect API to load data");
   setText("marketStatusText", "Markets: connect API to load data");
 }
+
+window.openPositionModal = openPositionModal;
