@@ -24,6 +24,7 @@ const chartRangeMs = {
 const snapshotMetrics = {
   balance: null,
   invested: null,
+  costBasis: null,
 };
 let chartPlotPoints = [];
 let searchDebounceTimer = null;
@@ -46,6 +47,13 @@ function setText(id, value) {
   const el = qs(id);
   if (!el) return;
   el.textContent = value;
+}
+
+function formatSignedMana(value) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return "-";
+  const core = formatMana(n);
+  return n > 0 ? `+${core}` : core;
 }
 
 function setValueWithTrend(id, text, trendClass = "") {
@@ -120,6 +128,7 @@ function clearDataViews() {
   setTrendClass("pnlValue", 0);
   snapshotMetrics.balance = null;
   snapshotMetrics.invested = null;
+  snapshotMetrics.costBasis = null;
   lastPortfolioRows = [];
   setText("lastUpdated", "Last updated: -");
   renderRows("betsTable", [], () => "");
@@ -166,7 +175,7 @@ async function loadConnectedSnapshot(apiKey) {
 
   const me = await response.json();
   const bal = Number(me.balance ?? 0);
-  if (!Number.isNaN(bal) && bal > 0) {
+  if (Number.isFinite(bal)) {
     snapshotMetrics.balance = bal;
     setText("balanceValue", formatMana(bal));
     updateNetWorth();
@@ -439,12 +448,19 @@ async function loadCurrentHoldings(apiKey) {
     );
 
     setText("openHoldingsValue", String(lastHoldings.length));
-    const invested = lastHoldings.reduce((sum, h) => sum + parseNum(h.shares) * parseNum(h.avgPrice), 0);
+    const investedCost = lastHoldings.reduce((sum, h) => {
+      const value = parseNum(h.value);
+      const pnlForHolding = parseNum(h.pnl);
+      const inferredCost = value - pnlForHolding;
+      if (Number.isFinite(inferredCost) && inferredCost > 0) return sum + inferredCost;
+      return sum + parseNum(h.shares) * parseNum(h.avgPrice);
+    }, 0);
     const currentValue = lastHoldings.reduce((sum, h) => sum + parseNum(h.value), 0);
-    const pnl = currentValue - invested;
-    snapshotMetrics.invested = invested;
-    setText("investedValue", formatMana(invested));
-    setText("pnlValue", formatMana(pnl));
+    const pnl = currentValue - investedCost;
+    snapshotMetrics.invested = currentValue;
+    snapshotMetrics.costBasis = investedCost;
+    setText("investedValue", formatMana(currentValue));
+    setText("pnlValue", formatSignedMana(pnl));
     setTrendClass("pnlValue", pnl);
     updateNetWorth();
 
@@ -454,6 +470,7 @@ async function loadCurrentHoldings(apiKey) {
     renderRows("holdingsTable", [], () => "");
     setText("openHoldingsValue", "0");
     snapshotMetrics.invested = null;
+    snapshotMetrics.costBasis = null;
     setText("investedValue", "-");
     setText("pnlValue", "-");
     setTrendClass("pnlValue", 0);
@@ -1584,8 +1601,9 @@ async function loadDashboard() {
       const invested = parseNum(latestPortfolio.invested);
       const pnl = parseNum(latestPortfolio.pnl);
       snapshotMetrics.invested = invested;
+      snapshotMetrics.costBasis = Number.isFinite(invested - pnl) ? invested - pnl : null;
       setText("investedValue", formatMana(invested));
-      setText("pnlValue", formatMana(pnl));
+      setText("pnlValue", formatSignedMana(pnl));
       setTrendClass("pnlValue", pnl);
       updateNetWorth();
     }
@@ -1948,7 +1966,9 @@ function calculatePerformanceMetrics() {
   // This would ideally use backend data
   // For now, calculate from holdings and portfolio
   
-  const totalInvested = snapshotMetrics.invested || 0;
+  const totalInvested = Number.isFinite(snapshotMetrics.costBasis)
+    ? snapshotMetrics.costBasis
+    : (snapshotMetrics.invested || 0);
   const balance = snapshotMetrics.balance || 0;
   const netWorth = balance + totalInvested;
   
