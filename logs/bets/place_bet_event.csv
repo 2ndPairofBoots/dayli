@@ -1,0 +1,344 @@
+timestamp,market_id,market_question,outcome,size,probability,strategy,reason,actual_cost
+2026-03-24T12:52:03.458560,z0hCz56gtd,Will NASA Astronomy Picture of the Day mention the,YES,1,0.034,SimpleStrategy,YES underpriced at 3.4%,1
+2026-03-24T12:52:03.464165,OtRpLOOEAz,Free Lottery (bacteria in body),YES,1,0.050,SimpleStrategy,YES underpriced at 5.0%,1
+2026-03-24T12:52:03.467120,hEZcA8l59I,Will Musk pay the salaries of TSA agents during sh,YES,1,0.058,SimpleStrategy,YES underpriced at 5.8%,1
+2026-03-24T12:52:03.472780,IlRdgUct0P,Will I win the 50$ gift card from the MAA USAmo/us,YES,1,0.062,SimpleStrategy,YES underpriced at 6.2%,1
+2026-03-24T12:52:03.506893,8u5ncEZgnh,One Nation gets at least 5 seats in the South Aust,YES,1,0.019,SimpleStrategy,YES underpriced at 1.9%,1
+2026-03-24T12:52:03.520130,p0cEzugIRd,Crypto currency retail trading will be banned in t,YES,1,0.088,SimpleStrategy,YES underpriced at 8.8%,1
+2026-03-24T12:52:03.523771,gQSsyndczZ,Will some type of attack happen at the Citi Bank b,YES,1,0.053,SimpleStrategy,YES underpriced at 5.3%,1
+2026-03-24T12:52:03.525582,zQzyQOtgL0,Will Trump live until march 30th?,NO,1,0.006,SimpleStrategy,NO underpriced at 0.6%,1
+2026-03-24T12:52:03.529259,96LCtq9Znl,"Will Bitcoin (BTC) surpass $250,000 before January",YES,1,0.096,SimpleStrategy,YES underpriced at 9.6%,1
+2026-03-24T12:52:03.532804,m4vLvzEMAq,"Will ""China Derangement Syndrome"" make the top fif",YES,1,0.077,SimpleStrategy,YES underpriced at 7.7%,1
+2026-03-24T12:52:03.551836,QAB3BEDRzi,"Will ""Whack-a-Mole is Not a Winnable Game"" make th",YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T12:52:03.554044,96dtSA2Z8d,Will Donald Trump die by April 1,YES,1,0.010,SimpleStrategy,YES underpriced at 1.0%,1
+2026-03-24T12:52:03.557415,pCOU0yN5Ql,Will a new social media app surpass TikTok in mont,YES,1,0.075,SimpleStrategy,YES underpriced at 7.5%,1
+2026-03-24T12:52:03.572038,zEl2U5Z66E,"Will I become CEO, CFO, COO, CIO of any publicly t",YES,1,0.093,SimpleStrategy,YES underpriced at 9.3%,1
+2026-03-24T12:52:03.572986,ybwcxBRrsK,"Will ""No, we haven't uploaded a fly yet"" make the ",YES,1,0.081,SimpleStrategy,YES underpriced at 8.1%,1
+2026-03-24T12:52:03.574147,ptPPqESSNC,Will the midterm elections take place on November ,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T12:52:03.576327,RrL7xqdPyc,"Will ""The Lethal Reality Hypothesis"" make the top ",YES,1,0.100,SimpleStrategy,YES underpriced at 10.0%,1
+2026-03-24T12:52:03.585516,9dN5uQ9yC6,Will Tom Holland get an Oscar by end of 2027,YES,1,0.094,SimpleStrategy,YES underpriced at 9.4%,1
+2026-03-24T12:52:03.589659,w9BCbshKra,"Will """"The AI Doc"" is coming out March 26"" make th",YES,1,0.105,SimpleStrategy,YES underpriced at 10.5%,1
+2026-03-24T12:52:03.598075,dzA08Pus6Z,"Is Donald Trump going to say, ""Should I exterminat",YES,1,0.108,SimpleStrategy,YES underpriced at 10.8%,1
+2026-03-24T12:52:03.601226,pUyRCAUC6s,Will the U.S reach a diplomatic agreement with Cub,YES,1,0.031,SimpleStrategy,YES underpriced at 3.1%,1
+2026-03-24T12:52:03.616207,2D2Wgfohcz,"Will ""Requiem for a Transhuman Timeline"" make the ",YES,1,0.079,SimpleStrategy,YES underpriced at 7.9%,1
+2026-03-24T12:52:03.619248,G9HdpyREaC,"Will ""It Is Reasonable To Research How To Use Mode",YES,1,0.103,SimpleStrategy,YES underpriced at 10.3%,1
+2026-03-24T12:52:03.620000,PIyI89dLug,(experimental) markets on probabilities under 1%,YES,1,0.011,SimpleStrategy,YES underpriced at 1.1%,1
+2026-03-24T12:52:03.621878,tRpQIC922l,Will I get JMO HM,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T12:52:03.624019,SrtoF6PcbH,"Will ""PSA: Predictions markets often have very low",YES,1,0.089,SimpleStrategy,YES underpriced at 8.9%,1
+2026-03-24T12:52:03.625469,9rCTjbJpZB,"Will ""You can’t imitation-learn how to continual-l",YES,1,0.086,SimpleStrategy,YES underpriced at 8.6%,1
+2026-03-24T12:52:03.633426,58hupLdSNu,Will Iran cease to exist in 2026?,YES,1,0.050,SimpleStrategy,YES underpriced at 5.0%,1
+2026-03-24T12:52:03.635586,A2PhsZQZ6A,Will I still think ergocidity economics is cranker,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T12:52:03.637271,qPlyQpsR56,Will Century High School (MN) qualify for Science ,YES,1,0.047,SimpleStrategy,YES underpriced at 4.7%,1
+2026-03-24T12:52:03.638917,lqRAnA8qPO,Will Kalshi pay $1 billion for a perfect bracket?,YES,1,0.009,SimpleStrategy,YES underpriced at 0.9%,1
+2026-03-24T12:52:03.640465,9SE0cUAS2A,Will Trump and Xi meet as scheduled on March 31st?,YES,1,0.022,SimpleStrategy,YES underpriced at 2.2%,1
+2026-03-24T12:52:03.649038,EEhLNuN0Zd,Will there be a tie at the 2027 Oscars?,YES,1,0.096,SimpleStrategy,YES underpriced at 9.6%,1
+2026-03-24T12:52:03.652412,zL6InOddlE,Will Zelenskyy be alive by the end of March?,NO,1,0.012,SimpleStrategy,NO underpriced at 1.2%,1
+2026-03-24T12:52:03.653855,LzOUz8AERI,Will a canal be created in the Strait of Hormuz us,YES,1,0.006,SimpleStrategy,YES underpriced at 0.6%,1
+2026-03-24T12:52:03.654402,c5tCCyLI0Q,Will I post 2 articles on my Substack between 16Ma,YES,1,0.075,SimpleStrategy,YES underpriced at 7.5%,1
+2026-03-24T12:52:03.656971,SpPsSA2ddQ,"Will Valve begin manufacturing RAM before May 1st,",YES,1,0.039,SimpleStrategy,YES underpriced at 3.9%,1
+2026-03-24T12:52:03.666231,QAOEyE8ELd,Will a direct military conflict happen between Ira,NO,1,0.037,SimpleStrategy,NO underpriced at 3.7%,1
+2026-03-24T12:52:03.671941,l9NNUgLS8g,Humanoid robot kills human in Ukrain war in 2026?,YES,1,0.087,SimpleStrategy,YES underpriced at 8.7%,1
+2026-03-24T12:52:03.672992,nQWavk9mnw,"Will ""New LessWrong Editor! (Also, an update to ou",YES,1,0.059,SimpleStrategy,YES underpriced at 5.9%,1
+2026-03-24T12:52:03.675148,8COuCuLQ0Z,Will Poland leave European Union before 2030?,YES,1,0.106,SimpleStrategy,YES underpriced at 10.6%,1
+2026-03-24T12:52:03.686584,9Ldt96sSL5,Will Nvidia stock close between $170.00 and $200.0,YES,1,0.034,SimpleStrategy,YES underpriced at 3.4%,1
+2026-03-24T12:52:03.690646,zSyUAUnSgN,Will Wikipedia on or before January 1st 2030 list ,YES,1,0.074,SimpleStrategy,YES underpriced at 7.4%,1
+2026-03-24T12:52:03.692941,NZS5REspAs,US escorts commercial ship through Hormuz by March,YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T12:52:03.703636,2E6hU85AIE,$TRUMP $8 by the end of the March,YES,1,0.020,SimpleStrategy,YES underpriced at 2.0%,1
+2026-03-24T12:52:03.713479,y6qu9LhuCR,Will the Trump administration detonate a nuclear b,YES,1,0.085,SimpleStrategy,YES underpriced at 8.5%,1
+2026-03-24T12:52:03.717458,ch5hlQzNQN,The Amazing Digital Circus Finale Released in 2026,NO,1,0.100,SimpleStrategy,NO underpriced at 10.0%,1
+2026-03-24T12:52:03.719497,9mp6vBwxit,"Will ""Ilya Sutskever Deposition Transcript"" make t",YES,1,0.091,SimpleStrategy,YES underpriced at 9.1%,1
+2026-03-24T12:52:03.721882,U66RQ9sERU,Will Trump apologize for bombing Iranian school?,YES,1,0.022,SimpleStrategy,YES underpriced at 2.2%,1
+2026-03-24T13:03:08.294115,hRREPUtASs,Will there be an international moratorium on front,YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T13:03:08.299015,EAH6Y6y3CD,"Will ""My Most Costly Delusion"" make the top fifty ",YES,1,0.231,SimpleStrategy,YES underpriced at 23.1%,1
+2026-03-24T13:03:08.300006,8gqlISQ2Pt,Will 10 or more desalination plants in the Middle ,YES,1,0.160,SimpleStrategy,YES underpriced at 16.0%,1
+2026-03-24T13:03:08.302793,pz2q0lsLcp,Will Raygen get an HC internship this summer?,YES,1,0.235,SimpleStrategy,YES underpriced at 23.5%,1
+2026-03-24T13:03:08.304871,Allsgnuhdh,Will roblox die before GTA6?,YES,1,0.210,SimpleStrategy,YES underpriced at 21.0%,1
+2026-03-24T13:03:08.305636,2Ipcczs9Uc,Will an EU head of state or government (not EU off,NO,1,0.203,SimpleStrategy,NO underpriced at 20.3%,1
+2026-03-24T13:03:08.306050,RdNEuR0O8C,Will AI models solve at least 2 FrontierMath Open ,NO,1,0.239,SimpleStrategy,NO underpriced at 23.9%,1
+2026-03-24T13:03:08.306477,z0hCz56gtd,Will NASA Astronomy Picture of the Day mention the,YES,1,0.034,SimpleStrategy,YES underpriced at 3.4%,1
+2026-03-24T13:03:08.306950,z9CCL6REyz,Is M136279841 the 52th mersenne prime number?,NO,1,0.145,SimpleStrategy,NO underpriced at 14.5%,1
+2026-03-24T13:03:08.307754,OtRpLOOEAz,Free Lottery (bacteria in body),YES,1,0.050,SimpleStrategy,YES underpriced at 5.0%,1
+2026-03-24T13:03:08.308297,zSScQNRduA,Will James Fishback win the Florida Republican Pri,YES,1,0.117,SimpleStrategy,YES underpriced at 11.7%,1
+2026-03-24T13:03:08.308905,OUCCz6gguE,Will the next president of France be from Parti So,YES,1,0.192,SimpleStrategy,YES underpriced at 19.2%,1
+2026-03-24T13:03:08.310161,hEZcA8l59I,Will Musk pay the salaries of TSA agents during sh,YES,1,0.057,SimpleStrategy,YES underpriced at 5.7%,1
+2026-03-24T13:03:08.311248,ZyAql95zS9,Trump claims Hormuz reopened within 72hrs of ultim,YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T13:03:08.314920,IlRdgUct0P,Will I win the 50$ gift card from the MAA USAmo/us,YES,1,0.062,SimpleStrategy,YES underpriced at 6.2%,1
+2026-03-24T13:03:08.315958,9950I0zQI8,Will AJ Dybantsa declare for the NBA draft this ye,NO,1,0.169,SimpleStrategy,NO underpriced at 16.9%,1
+2026-03-24T13:03:08.318034,8u5ncEZgnh,One Nation gets at least 5 seats in the South Aust,YES,1,0.019,SimpleStrategy,YES underpriced at 1.9%,1
+2026-03-24T13:03:08.318626,2ZqQqn0cgq,Will Democrats win the Mar A Lago(Trump Residence),YES,1,0.123,SimpleStrategy,YES underpriced at 12.3%,1
+2026-03-24T13:03:08.319352,UlZEC6Rys2,Russia-Ukraine ceasefire before end of Iran War,YES,1,0.261,SimpleStrategy,YES underpriced at 26.1%,1
+2026-03-24T13:03:08.321348,QNc0qAuI2q,"Will PCG close higher on Friday, March 27?",YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T13:03:08.322411,p0cEzugIRd,Crypto currency retail trading will be banned in t,YES,1,0.088,SimpleStrategy,YES underpriced at 8.8%,1
+2026-03-24T13:03:08.322941,IzgQuP696y,"Before 2027, will LLMs be able to play videogames ",YES,1,0.216,SimpleStrategy,YES underpriced at 21.6%,1
+2026-03-24T13:03:08.323570,EUpIpgu9hL,Will Idaho House Bill 752 (A trans bathroom bill) ,NO,1,0.240,SimpleStrategy,NO underpriced at 24.0%,1
+2026-03-24T13:03:08.324179,gQSsyndczZ,Will some type of attack happen at the Citi Bank b,YES,1,0.053,SimpleStrategy,YES underpriced at 5.3%,1
+2026-03-24T13:03:08.324786,zQzyQOtgL0,Will Trump live until march 30th?,NO,1,0.006,SimpleStrategy,NO underpriced at 0.6%,1
+2026-03-24T13:03:08.325798,96LCtq9Znl,"Will Bitcoin (BTC) surpass $250,000 before January",YES,1,0.096,SimpleStrategy,YES underpriced at 9.6%,1
+2026-03-24T13:03:08.326521,LlNCONSLPd,Will JD Vance’s next tweet contain the letter J?,YES,1,0.124,SimpleStrategy,YES underpriced at 12.4%,1
+2026-03-24T13:03:08.327199,m4vLvzEMAq,"Will ""China Derangement Syndrome"" make the top fif",YES,1,0.077,SimpleStrategy,YES underpriced at 7.7%,1
+2026-03-24T13:03:08.327712,Iz0lRpO85N,One Nation gets at least 4 seats in the South Aust,NO,1,0.184,SimpleStrategy,NO underpriced at 18.4%,1
+2026-03-24T13:03:08.333842,Ethd0tgzZA,Will Manifold add Free Loans on Liquidity by EOY 2,YES,1,0.149,SimpleStrategy,YES underpriced at 14.9%,1
+2026-03-24T13:03:08.336406,ZRnIOUcd8P,Will an Iranian ballistic missile strike the US/UK,YES,1,0.117,SimpleStrategy,YES underpriced at 11.7%,1
+2026-03-24T13:03:08.337535,nNpPgpUtLR,New Zealand Labour forms a government in 2026 with,YES,1,0.246,SimpleStrategy,YES underpriced at 24.6%,1
+2026-03-24T13:03:08.338319,QAB3BEDRzi,"Will ""Whack-a-Mole is Not a Winnable Game"" make th",YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T13:03:08.339804,96dtSA2Z8d,Will Donald Trump die by April 1,YES,1,0.010,SimpleStrategy,YES underpriced at 1.0%,1
+2026-03-24T13:03:08.340628,2s9n8q6CRZ,will duke win the ncaa tournament,YES,1,0.215,SimpleStrategy,YES underpriced at 21.5%,1
+2026-03-24T13:03:08.341194,6pDMLYr7my,"Will ""Broad Timelines"" make the top fifty posts in",YES,1,0.210,SimpleStrategy,YES underpriced at 21.0%,1
+2026-03-24T13:03:08.341680,Z6S0tpCOLc,will ray the streamer eat a dog before gta 6 ?,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T13:03:08.342159,U9qutUgyEL,Will China invade Taiwan before 2027,YES,1,0.176,SimpleStrategy,YES underpriced at 17.6%,1
+2026-03-24T13:03:08.342911,pCOU0yN5Ql,Will a new social media app surpass TikTok in mont,YES,1,0.075,SimpleStrategy,YES underpriced at 7.5%,1
+2026-03-24T13:03:08.344885,69R2EPdhqy,Will Trump resign before the term end,YES,1,0.119,SimpleStrategy,YES underpriced at 11.9%,1
+2026-03-24T13:03:08.349467,Otq2lg5QNz,Will Vijay's TVK party contest all 234 TN assembly,NO,1,0.143,SimpleStrategy,NO underpriced at 14.3%,1
+2026-03-24T13:03:08.351708,QA5zgO2glO,"Will Brent Crude Oil close above $115 on March 25,",YES,1,0.231,SimpleStrategy,YES underpriced at 23.1%,1
+2026-03-24T13:03:08.352426,5EqhLttPEc,Will 67 last till the end of 2026?,YES,1,0.240,SimpleStrategy,YES underpriced at 24.0%,1
+2026-03-24T13:03:08.353228,NEFNs4vbNx,"Will ""Nullius in Verba: 3rd party evidence for Nec",YES,1,0.116,SimpleStrategy,YES underpriced at 11.6%,1
+2026-03-24T13:03:08.355636,dQNAlLEIZt,Will CMOC Group's annual cobalt production exceed ,NO,1,0.205,SimpleStrategy,NO underpriced at 20.5%,1
+2026-03-24T13:03:08.357301,SgUpcNsyOt,Does Amin know,YES,1,0.168,SimpleStrategy,YES underpriced at 16.8%,1
+2026-03-24T13:03:08.358264,NsdL9PyduO,"Conditional on Iran developing a nuclear weapon, w",YES,1,0.128,SimpleStrategy,YES underpriced at 12.8%,1
+2026-03-24T13:03:08.360239,zEl2U5Z66E,"Will I become CEO, CFO, COO, CIO of any publicly t",YES,1,0.093,SimpleStrategy,YES underpriced at 9.3%,1
+2026-03-24T13:03:08.361531,ybwcxBRrsK,"Will ""No, we haven't uploaded a fly yet"" make the ",YES,1,0.081,SimpleStrategy,YES underpriced at 8.1%,1
+2026-03-24T13:03:08.365337,y8p5Ol62uA,Will John Fetterman win the 2028 Democratic primar,YES,1,0.180,SimpleStrategy,YES underpriced at 18.0%,1
+2026-03-24T13:03:08.367397,ptPPqESSNC,Will the midterm elections take place on November ,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T13:03:08.369359,RrL7xqdPyc,"Will ""The Lethal Reality Hypothesis"" make the top ",YES,1,0.100,SimpleStrategy,YES underpriced at 10.0%,1
+2026-03-24T13:03:08.370080,0AqEut9qzZ,Will Pydantic Services get acquired this year?,YES,1,0.190,SimpleStrategy,YES underpriced at 19.0%,1
+2026-03-24T13:03:08.373088,9dN5uQ9yC6,Will Tom Holland get an Oscar by end of 2027,YES,1,0.094,SimpleStrategy,YES underpriced at 9.4%,1
+2026-03-24T13:03:08.373755,IRII2IgAOd,Will Frank (Man United fan) get a haircut before t,YES,1,0.200,SimpleStrategy,YES underpriced at 20.0%,1
+2026-03-24T13:03:08.374586,29RAE08lUn,Will Elon Musk be the richest man on earth by the ,NO,1,0.150,SimpleStrategy,NO underpriced at 15.0%,1
+2026-03-24T13:03:08.375790,600ZpcE695,Will Joe Biden live to see the end of the US-Iran ,NO,1,0.169,SimpleStrategy,NO underpriced at 16.9%,1
+2026-03-24T13:03:08.376800,w9BCbshKra,"Will """"The AI Doc"" is coming out March 26"" make th",YES,1,0.105,SimpleStrategy,YES underpriced at 10.5%,1
+2026-03-24T13:03:08.378102,6AuR0pt2A5,Will Lynas LAMP samarium oxide production exceed 5,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T13:03:08.382000,zn0dUqAuSL,Will Lynas LAMP NdPr oxide production exceed 3500 ,YES,1,0.210,SimpleStrategy,YES underpriced at 21.0%,1
+2026-03-24T13:03:08.383098,ZCnPpEIPug,Will the Dow hit 50k before the number of American,NO,1,0.122,SimpleStrategy,NO underpriced at 12.2%,1
+2026-03-24T13:03:08.384853,OgnlLCUuCA,Is this jigsaw puzzle missing some piece?,NO,1,0.140,SimpleStrategy,NO underpriced at 14.0%,1
+2026-03-24T13:03:08.385961,dzA08Pus6Z,"Is Donald Trump going to say, ""Should I exterminat",YES,1,0.108,SimpleStrategy,YES underpriced at 10.8%,1
+2026-03-24T13:03:08.386371,0g2hytt9uN,Will any major Hollywood film released before 2027,YES,1,0.169,SimpleStrategy,YES underpriced at 16.9%,1
+2026-03-24T13:03:08.387247,sUEn62Llgz,Are there more forks than spoons in the world?,NO,1,0.260,SimpleStrategy,NO underpriced at 26.0%,1
+2026-03-24T13:03:08.387992,pUyRCAUC6s,Will the U.S reach a diplomatic agreement with Cub,YES,1,0.031,SimpleStrategy,YES underpriced at 3.1%,1
+2026-03-24T13:03:08.392322,Ag8NASutzO,Will V’s penis touch G’s sex doll by the end of th,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T13:03:08.393603,c2p6sUpg9E,Will Europe find a peaceful agreement with Iran to,YES,1,0.195,SimpleStrategy,YES underpriced at 19.5%,1
+2026-03-24T13:03:08.394493,RsZ0CLIqqO,Will a major tech company publicly pause or limit ,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T13:03:08.398377,ulLsRqSEtc,"Will Bitcoin reach $120,000 USD at any point befor",YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T13:03:08.399448,SEEIQgQccl,"Will Bitcoin be above $75,000 on April 18, 2026?",YES,1,0.251,SimpleStrategy,YES underpriced at 25.1%,1
+2026-03-24T13:03:08.400585,fGpQ4cmWsX,"Will ""Personality Self-Replicators"" make the top f",YES,1,0.120,SimpleStrategy,YES underpriced at 12.0%,1
+2026-03-24T13:03:08.401680,2D2Wgfohcz,"Will ""Requiem for a Transhuman Timeline"" make the ",YES,1,0.079,SimpleStrategy,YES underpriced at 7.9%,1
+2026-03-24T13:03:08.403789,NLc258gpcs,Will Oliver Larkin win the Florida 23rd Democratic,YES,1,0.251,SimpleStrategy,YES underpriced at 25.1%,1
+2026-03-24T13:03:08.404595,G9HdpyREaC,"Will ""It Is Reasonable To Research How To Use Mode",YES,1,0.103,SimpleStrategy,YES underpriced at 10.3%,1
+2026-03-24T13:03:08.405248,PIyI89dLug,(experimental) markets on probabilities under 1%,YES,1,0.011,SimpleStrategy,YES underpriced at 1.1%,1
+2026-03-24T13:03:08.405797,P2A8OOhcE9,Will Iran launch the 100th wave of missile/drone s,YES,1,0.143,SimpleStrategy,YES underpriced at 14.3%,1
+2026-03-24T13:03:08.406540,tRpQIC922l,Will I get JMO HM,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T13:03:08.407727,SrtoF6PcbH,"Will ""PSA: Predictions markets often have very low",YES,1,0.089,SimpleStrategy,YES underpriced at 8.9%,1
+2026-03-24T13:03:08.408569,9rCTjbJpZB,"Will ""You can’t imitation-learn how to continual-l",YES,1,0.086,SimpleStrategy,YES underpriced at 8.6%,1
+2026-03-24T13:03:08.411703,58hupLdSNu,Will Iran cease to exist in 2026?,YES,1,0.050,SimpleStrategy,YES underpriced at 5.0%,1
+2026-03-24T13:03:08.413628,8PEt9Auh0c,Will China get involved in the Iran war.,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T13:03:08.415124,ACyAAgE5hN,Will I exercise every single day until April?,NO,1,0.240,SimpleStrategy,NO underpriced at 24.0%,1
+2026-03-24T13:03:08.416737,A2PhsZQZ6A,Will I still think ergocidity economics is cranker,NO,1,0.060,SimpleStrategy,NO underpriced at 6.0%,1
+2026-03-24T13:03:08.417845,qPlyQpsR56,Will Century High School (MN) qualify for Science ,YES,1,0.047,SimpleStrategy,YES underpriced at 4.7%,1
+2026-03-24T13:03:08.418929,lqRAnA8qPO,Will Kalshi pay $1 billion for a perfect bracket?,YES,1,0.009,SimpleStrategy,YES underpriced at 0.9%,1
+2026-03-24T13:03:08.420202,9SE0cUAS2A,Will Trump and Xi meet as scheduled on March 31st?,YES,1,0.022,SimpleStrategy,YES underpriced at 2.2%,1
+2026-03-24T13:03:08.421161,LgRyL5N08c,Will Trump get his third impeachment before 2027?,YES,1,0.124,SimpleStrategy,YES underpriced at 12.4%,1
+2026-03-24T13:03:08.423620,EEhLNuN0Zd,Will there be a tie at the 2027 Oscars?,YES,1,0.096,SimpleStrategy,YES underpriced at 9.6%,1
+2026-03-24T13:03:08.424370,286ycOt8cp,Will Spurs aka Tottenham Hotspur be relegated from,YES,1,0.237,SimpleStrategy,YES underpriced at 23.7%,1
+2026-03-24T13:03:08.425717,ZOusqItSpL,Will Benjamin Netanyahu be alive on December 31 20,NO,1,0.110,SimpleStrategy,NO underpriced at 11.0%,1
+2026-03-24T13:03:08.426295,zL6InOddlE,Will Zelenskyy be alive by the end of March?,NO,1,0.012,SimpleStrategy,NO underpriced at 1.2%,1
+2026-03-24T13:03:08.427288,IUg0RqEINt,"Will the AI-generated Bitcoin song ""Chain of Infin",YES,1,0.220,SimpleStrategy,YES underpriced at 22.0%,1
+2026-03-24T13:03:08.428143,LzOUz8AERI,Will a canal be created in the Strait of Hormuz us,YES,1,0.006,SimpleStrategy,YES underpriced at 0.6%,1
+2026-03-24T13:03:08.430647,c5tCCyLI0Q,Will I post 2 articles on my Substack between 16Ma,YES,1,0.075,SimpleStrategy,YES underpriced at 7.5%,1
+2026-03-24T13:03:08.432232,Oh02qsnR6P,Will I get accepted to MIT class of 2031?,NO,1,0.150,SimpleStrategy,NO underpriced at 15.0%,1
+2026-03-24T13:03:08.433450,pzd55zg6CI,Will an AI-generated song about Bitcoin reach 1M s,YES,1,0.190,SimpleStrategy,YES underpriced at 19.0%,1
+2026-03-24T13:03:08.434405,SpPsSA2ddQ,"Will Valve begin manufacturing RAM before May 1st,",YES,1,0.039,SimpleStrategy,YES underpriced at 3.9%,1
+2026-03-24T13:03:08.435015,9hQy8UE52n,Will I qualify for Mop 2026?,NO,1,0.140,SimpleStrategy,NO underpriced at 14.0%,1
+2026-03-24T13:03:08.435510,uhEZpPyAdL,Will Tucker Carlson be arrested in 2026?,YES,1,0.116,SimpleStrategy,YES underpriced at 11.6%,1
+2026-03-24T13:03:08.436030,QAOEyE8ELd,Will a direct military conflict happen between Ira,NO,1,0.037,SimpleStrategy,NO underpriced at 3.7%,1
+2026-03-24T13:03:08.436682,sh5EA2qszO,Will Amberlynn Reid post a video on her demonitize,YES,1,0.262,SimpleStrategy,YES underpriced at 26.2%,1
+2026-03-24T13:03:08.437761,uE8UuZdLtd,"Will the AI-generated Bitcoin song ""Chain of Infin",YES,1,0.145,SimpleStrategy,YES underpriced at 14.5%,1
+2026-03-24T13:03:08.438463,RRdSCLQy2y,Will US take control of Strait of Hormuz before Ap,YES,1,0.180,SimpleStrategy,YES underpriced at 18.0%,1
+2026-03-24T13:03:08.439720,P6zUhduSzP,Will Global Entry and standard TSA airport staffin,YES,1,0.259,SimpleStrategy,YES underpriced at 25.9%,1
+2026-03-24T13:03:08.440158,l9NNUgLS8g,Humanoid robot kills human in Ukrain war in 2026?,YES,1,0.087,SimpleStrategy,YES underpriced at 8.7%,1
+2026-03-24T13:03:08.440760,nQWavk9mnw,"Will ""New LessWrong Editor! (Also, an update to ou",YES,1,0.059,SimpleStrategy,YES underpriced at 5.9%,1
+2026-03-24T13:03:08.441610,8COuCuLQ0Z,Will Poland leave European Union before 2030?,YES,1,0.106,SimpleStrategy,YES underpriced at 10.6%,1
+2026-03-24T13:03:08.443237,td5ALUI5cP,The United States federal gov will institute a Sel,YES,1,0.136,SimpleStrategy,YES underpriced at 13.6%,1
+2026-03-24T13:03:08.444238,zCSsCLlE2Q,Can Thomas Tuchel's new tactics overcome historica,YES,1,0.113,SimpleStrategy,YES underpriced at 11.3%,1
+2026-03-24T13:03:08.445143,qLL8y0qO29,Will Fc Bayern win the Champions League?,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T13:03:08.447769,L0gtQ9dP6S,Will the Citrini scenario happen? [Kalshi],YES,1,0.231,SimpleStrategy,YES underpriced at 23.1%,1
+2026-03-24T13:03:08.449023,h58ZgnnhcO,Will US public opinion shift towards Israel during,YES,1,0.161,SimpleStrategy,YES underpriced at 16.1%,1
+2026-03-24T13:03:08.449522,9Ldt96sSL5,Will Nvidia stock close between $170.00 and $200.0,YES,1,0.034,SimpleStrategy,YES underpriced at 3.4%,1
+2026-03-24T13:03:08.449983,Ey98OcqUZd,OpenAI Goes Broke before 2033 (See criteria),YES,1,0.250,SimpleStrategy,YES underpriced at 25.0%,1
+2026-03-24T13:03:08.450666,EZquUyn2du,Will the United States government detonate a nucle,YES,1,0.124,SimpleStrategy,YES underpriced at 12.4%,1
+2026-03-24T13:03:08.451191,zSyUAUnSgN,Will Wikipedia on or before January 1st 2030 list ,YES,1,0.074,SimpleStrategy,YES underpriced at 7.4%,1
+2026-03-24T13:03:08.451930,ZZIsnZpgQq,Are pigs sentient? [Resolves to superintelligence],NO,1,0.113,SimpleStrategy,NO underpriced at 11.3%,1
+2026-03-24T13:03:08.453049,NZS5REspAs,US escorts commercial ship through Hormuz by March,YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T13:03:08.454564,56cU0sptPS,Romania's Eurovision Song Contest 2026 entry disqu,YES,1,0.148,SimpleStrategy,YES underpriced at 14.8%,1
+2026-03-24T13:03:08.455041,8uhPZzgdII,Is the US government the mystery oil futures selle,YES,1,0.149,SimpleStrategy,YES underpriced at 14.9%,1
+2026-03-24T13:03:08.456704,2E6hU85AIE,$TRUMP $8 by the end of the March,YES,1,0.020,SimpleStrategy,YES underpriced at 2.0%,1
+2026-03-24T13:03:08.457455,RhUqc669uZ,In two years time AI pornography will generate twi,YES,1,0.121,SimpleStrategy,YES underpriced at 12.1%,1
+2026-03-24T13:03:08.459247,qNNg0CqN6N,Will the 2026 Triton Jeju $100K Main Event exceed ,NO,1,0.196,SimpleStrategy,NO underpriced at 19.6%,1
+2026-03-24T13:03:08.460446,p5nE0uElR8,Will there be at least one cutaway gag in the firs,NO,1,0.119,SimpleStrategy,NO underpriced at 11.9%,1
+2026-03-24T13:03:08.461507,y6qu9LhuCR,Will the Trump administration detonate a nuclear b,YES,1,0.085,SimpleStrategy,YES underpriced at 8.5%,1
+2026-03-24T13:03:08.463686,znuzCy0AEt,Italy judicial reform: Will turnout at the March 2,YES,1,0.246,SimpleStrategy,YES underpriced at 24.6%,1
+2026-03-24T13:03:08.465153,ch5hlQzNQN,The Amazing Digital Circus Finale Released in 2026,NO,1,0.100,SimpleStrategy,NO underpriced at 10.0%,1
+2026-03-24T13:03:08.466094,9mp6vBwxit,"Will ""Ilya Sutskever Deposition Transcript"" make t",YES,1,0.091,SimpleStrategy,YES underpriced at 9.1%,1
+2026-03-24T13:03:08.466980,U66RQ9sERU,Will Trump apologize for bombing Iranian school?,YES,1,0.022,SimpleStrategy,YES underpriced at 2.2%,1
+2026-03-24T13:03:08.467661,QQpAZI0S9h,Alexandre de Moraes out as Brazil Supreme Court Ju,YES,1,0.174,SimpleStrategy,YES underpriced at 17.4%,1
+2026-03-24T19:41:08.536432,CzoiqGzpSh,"Will ""Some things I noticed while LARPing as a gra",YES,1,0.113,SimpleStrategy,YES underpriced at 11.3%,1
+2026-03-24T19:41:08.537174,Zt0RUhAPuz,"Will Mauritania defeat Argentina on March 27, 2026",YES,1,0.196,SimpleStrategy,YES underpriced at 19.6%,1
+2026-03-24T19:41:08.537649,qtC6ndhIA6,"Will an ICE Agent engage in an ""Unjustified"" shoot",YES,1,0.150,SimpleStrategy,YES underpriced at 15.0%,1
+2026-03-24T19:41:08.538050,lAPzEu0nPO,JJBA: Steel Ball Run next episode this week?,YES,2,0.026,SimpleStrategy,YES underpriced at 2.6%,2
+2026-03-24T19:41:08.538584,RXU4cuLM2I,Do you like 24% odds?,YES,1,0.236,SimpleStrategy,YES underpriced at 23.6%,1
+2026-03-24T19:41:08.538909,hRREPUtASs,Will there be an international moratorium on front,YES,1,0.227,SimpleStrategy,YES underpriced at 22.7%,1
+2026-03-24T19:41:08.539201,l0RZn88Cq2,Will iran hit USA before june,NO,1,0.282,SimpleStrategy,NO underpriced at 28.2%,1
+2026-03-24T19:41:08.539491,qLly06A6hd,Will Iran get a new Supreme Leader before the end ,YES,1,0.236,SimpleStrategy,YES underpriced at 23.6%,1
+2026-03-24T19:41:08.539741,EAH6Y6y3CD,"Will ""My Most Costly Delusion"" make the top fifty ",YES,1,0.214,SimpleStrategy,YES underpriced at 21.4%,1
+2026-03-24T19:41:08.540026,8gqlISQ2Pt,Will 10 or more desalination plants in the Middle ,YES,2,0.060,SimpleStrategy,YES underpriced at 6.0%,2
+2026-03-24T19:41:08.540350,CqUuq2Pn8I,Will the U.S. Senate pass the recently proposed le,YES,1,0.087,SimpleStrategy,YES underpriced at 8.7%,1
+2026-03-24T19:41:08.540553,sZA6zz2pqN,Will someone get into trouble at the field trip to,NO,1,0.240,SimpleStrategy,NO underpriced at 24.0%,1
+2026-03-24T19:41:08.541336,dRIg50lR5n,Will I be invited to MOP 2026?,YES,1,0.250,SimpleStrategy,YES underpriced at 25.0%,1
+2026-03-24T19:41:08.541669,8NERIRnOAO,Will A-Levels get cancelled in GCC,YES,1,0.293,SimpleStrategy,YES underpriced at 29.3%,1
+2026-03-24T19:41:08.542332,Allsgnuhdh,Will roblox die before GTA6?,YES,1,0.172,SimpleStrategy,YES underpriced at 17.2%,1
+2026-03-24T19:41:08.542864,O6sAsOpLpz,Will I at least tie all Exeter moppers on usamo 20,YES,1,0.140,SimpleStrategy,YES underpriced at 14.0%,1
+2026-03-24T19:41:08.543348,RdNEuR0O8C,Will AI models solve at least 2 FrontierMath Open ,NO,1,0.239,SimpleStrategy,NO underpriced at 23.9%,1
+2026-03-24T19:41:08.543561,z0hCz56gtd,Will NASA Astronomy Picture of the Day mention the,YES,2,0.034,SimpleStrategy,YES underpriced at 3.4%,2
+2026-03-24T19:41:08.543795,yLCSSc9QNt,Did anyone solve USAMO 2026/3?,NO,1,0.319,SimpleStrategy,NO underpriced at 31.9%,1
+2026-03-24T19:41:08.543973,z9CCL6REyz,Is M136279841 the 52th mersenne prime number?,NO,1,0.145,SimpleStrategy,NO underpriced at 14.5%,1
+2026-03-24T19:41:08.544473,zSScQNRduA,Will James Fishback win the Florida Republican Pri,YES,1,0.072,SimpleStrategy,YES underpriced at 7.2%,1
+2026-03-24T19:41:08.545928,OUCCz6gguE,Will the next president of France be from Parti So,YES,1,0.192,SimpleStrategy,YES underpriced at 19.2%,1
+2026-03-24T19:41:08.547285,u8ssp69L6q,MARCO RUBIO WILL WIN 2028 REPUBLICAN PRIMARY? ,YES,1,0.190,SimpleStrategy,YES underpriced at 19.0%,1
+2026-03-24T19:41:08.548094,hEZcA8l59I,Will Musk pay the salaries of TSA agents during sh,YES,2,0.051,SimpleStrategy,YES underpriced at 5.1%,2
+2026-03-24T19:41:08.549179,ZyAql95zS9,Trump claims Hormuz reopened within 72hrs of ultim,YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T19:41:08.549882,IlRdgUct0P,Will I win the 50$ gift card from the MAA USAmo/us,YES,2,0.062,SimpleStrategy,YES underpriced at 6.2%,2
+2026-03-24T19:41:08.550136,9950I0zQI8,Will AJ Dybantsa declare for the NBA draft this ye,NO,1,0.139,SimpleStrategy,NO underpriced at 13.9%,1
+2026-03-24T19:41:08.550510,8u5ncEZgnh,One Nation gets at least 5 seats in the South Aust,YES,2,0.019,SimpleStrategy,YES underpriced at 1.9%,2
+2026-03-24T19:41:08.550710,2ZqQqn0cgq,Will Democrats win the Mar A Lago(Trump Residence),NO,1,0.257,SimpleStrategy,NO underpriced at 25.7%,1
+2026-03-24T19:41:08.551014,UlZEC6Rys2,Russia-Ukraine ceasefire before end of Iran War,YES,1,0.261,SimpleStrategy,YES underpriced at 26.1%,1
+2026-03-24T19:41:08.551740,QNc0qAuI2q,"Will PCG close higher on Friday, March 27?",YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T19:41:08.552340,p0cEzugIRd,Crypto currency retail trading will be banned in t,YES,1,0.088,SimpleStrategy,YES underpriced at 8.8%,1
+2026-03-24T19:41:08.552577,IzgQuP696y,"Before 2027, will LLMs be able to play videogames ",YES,1,0.216,SimpleStrategy,YES underpriced at 21.6%,1
+2026-03-24T19:41:08.552845,EUpIpgu9hL,Will Idaho House Bill 752 (A trans bathroom bill) ,NO,1,0.240,SimpleStrategy,NO underpriced at 24.0%,1
+2026-03-24T19:41:08.553110,gQSsyndczZ,Will some type of attack happen at the Citi Bank b,YES,2,0.053,SimpleStrategy,YES underpriced at 5.3%,2
+2026-03-24T19:41:08.553369,zQzyQOtgL0,Will Trump live until march 30th?,NO,2,0.010,SimpleStrategy,NO underpriced at 1.0%,2
+2026-03-24T19:41:08.553661,96LCtq9Znl,"Will Bitcoin (BTC) surpass $250,000 before January",YES,2,0.039,SimpleStrategy,YES underpriced at 3.9%,2
+2026-03-24T19:41:08.554037,m4vLvzEMAq,"Will ""China Derangement Syndrome"" make the top fif",YES,1,0.077,SimpleStrategy,YES underpriced at 7.7%,1
+2026-03-24T19:41:08.554289,Iz0lRpO85N,One Nation gets at least 4 seats in the South Aust,NO,1,0.204,SimpleStrategy,NO underpriced at 20.4%,1
+2026-03-24T19:41:08.555332,Ethd0tgzZA,Will Manifold add Free Loans on Liquidity by EOY 2,YES,1,0.149,SimpleStrategy,YES underpriced at 14.9%,1
+2026-03-24T19:41:08.555622,A092qz068z,Will WTI Crude Oil close below $85.00/barrel on Ma,YES,1,0.262,SimpleStrategy,YES underpriced at 26.2%,1
+2026-03-24T19:41:08.556796,ZRnIOUcd8P,Will an Iranian ballistic missile strike the US/UK,YES,1,0.117,SimpleStrategy,YES underpriced at 11.7%,1
+2026-03-24T19:41:08.557757,nNpPgpUtLR,New Zealand Labour forms a government in 2026 with,YES,1,0.246,SimpleStrategy,YES underpriced at 24.6%,1
+2026-03-24T19:41:08.558239,QAB3BEDRzi,"Will ""Whack-a-Mole is Not a Winnable Game"" make th",YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T19:41:08.558522,lulnEhhRNN,Will Bitcoin cross $76K before April 1?,YES,1,0.260,SimpleStrategy,YES underpriced at 26.0%,1
+2026-03-24T19:41:08.558864,96dtSA2Z8d,Will Donald Trump die by April 1,YES,2,0.010,SimpleStrategy,YES underpriced at 1.0%,2
+2026-03-24T19:41:08.559111,9N0zzc0Azz,Will Royal Challengers Bangalore (RCB) win vs Sunr,NO,1,0.320,SimpleStrategy,NO underpriced at 32.0%,1
+2026-03-24T19:41:08.559289,2s9n8q6CRZ,will duke win the ncaa tournament,YES,1,0.215,SimpleStrategy,YES underpriced at 21.5%,1
+2026-03-24T19:41:08.559542,6pDMLYr7my,"Will ""Broad Timelines"" make the top fifty posts in",YES,1,0.202,SimpleStrategy,YES underpriced at 20.2%,1
+2026-03-24T19:41:08.559729,Z6S0tpCOLc,will ray the streamer eat a dog before gta 6 ?,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T19:41:08.560019,U9qutUgyEL,Will China invade Taiwan before 2027,YES,1,0.176,SimpleStrategy,YES underpriced at 17.6%,1
+2026-03-24T19:41:08.560263,pCOU0yN5Ql,Will a new social media app surpass TikTok in mont,YES,1,0.075,SimpleStrategy,YES underpriced at 7.5%,1
+2026-03-24T19:41:08.560472,yuq0CIPn2l,will ram prices go down by the end of 2027,YES,1,0.286,SimpleStrategy,YES underpriced at 28.6%,1
+2026-03-24T19:41:08.561081,69R2EPdhqy,Will Trump resign before the term end,YES,1,0.119,SimpleStrategy,YES underpriced at 11.9%,1
+2026-03-24T19:41:08.562410,glLPEUpcd2,Will I weight less than 149 lbs on the morning of ,NO,1,0.282,SimpleStrategy,NO underpriced at 28.2%,1
+2026-03-24T19:41:08.564450,Otq2lg5QNz,Will Vijay's TVK party contest all 234 TN assembly,NO,1,0.143,SimpleStrategy,NO underpriced at 14.3%,1
+2026-03-24T19:41:08.565282,ZpgCdSgPCA,Will CSK win IPL 2026,YES,1,0.315,SimpleStrategy,YES underpriced at 31.5%,1
+2026-03-24T19:41:08.565839,QA5zgO2glO,"Will Brent Crude Oil close above $115 on March 25,",YES,1,0.280,SimpleStrategy,YES underpriced at 28.0%,1
+2026-03-24T19:41:08.566488,5EqhLttPEc,Will 67 last till the end of 2026?,YES,1,0.240,SimpleStrategy,YES underpriced at 24.0%,1
+2026-03-24T19:41:08.567558,NEFNs4vbNx,"Will ""Nullius in Verba: 3rd party evidence for Nec",YES,1,0.116,SimpleStrategy,YES underpriced at 11.6%,1
+2026-03-24T19:41:08.568137,dQNAlLEIZt,Will CMOC Group's annual cobalt production exceed ,NO,1,0.202,SimpleStrategy,NO underpriced at 20.2%,1
+2026-03-24T19:41:08.568893,SgUpcNsyOt,Does Amin know,YES,1,0.168,SimpleStrategy,YES underpriced at 16.8%,1
+2026-03-24T19:41:08.569224,NsdL9PyduO,"Conditional on Iran developing a nuclear weapon, w",YES,1,0.128,SimpleStrategy,YES underpriced at 12.8%,1
+2026-03-24T19:41:08.569433,tNnP6ulnz2,"Conditional on Iran developing a nuclear weapon, w",YES,1,0.283,SimpleStrategy,YES underpriced at 28.3%,1
+2026-03-24T19:41:08.569677,zEl2U5Z66E,"Will I become CEO, CFO, COO, CIO of any publicly t",YES,1,0.080,SimpleStrategy,YES underpriced at 8.0%,1
+2026-03-24T19:41:08.570077,ybwcxBRrsK,"Will ""No, we haven't uploaded a fly yet"" make the ",YES,1,0.081,SimpleStrategy,YES underpriced at 8.1%,1
+2026-03-24T19:41:08.570518,y8p5Ol62uA,Will John Fetterman win the 2028 Democratic primar,YES,1,0.180,SimpleStrategy,YES underpriced at 18.0%,1
+2026-03-24T19:41:08.571006,ptPPqESSNC,Will the midterm elections take place on November ,NO,2,0.060,SimpleStrategy,NO underpriced at 6.0%,2
+2026-03-24T19:41:08.571658,AgsdU9g9Rq,Will I have 2 markets on the same predictle by end,YES,1,0.276,SimpleStrategy,YES underpriced at 27.6%,1
+2026-03-24T19:41:08.572111,RrL7xqdPyc,"Will ""The Lethal Reality Hypothesis"" make the top ",YES,1,0.100,SimpleStrategy,YES underpriced at 10.0%,1
+2026-03-24T19:41:08.572440,0AqEut9qzZ,Will Pydantic Services get acquired this year?,YES,1,0.176,SimpleStrategy,YES underpriced at 17.6%,1
+2026-03-24T19:41:08.573245,9dN5uQ9yC6,Will Tom Holland get an Oscar by end of 2027,YES,1,0.094,SimpleStrategy,YES underpriced at 9.4%,1
+2026-03-24T19:41:08.573460,IRII2IgAOd,Will Frank (Man United fan) get a haircut before t,YES,1,0.200,SimpleStrategy,YES underpriced at 20.0%,1
+2026-03-24T19:41:08.573731,29RAE08lUn,Will Elon Musk be the richest man on earth by the ,NO,1,0.150,SimpleStrategy,NO underpriced at 15.0%,1
+2026-03-24T19:41:08.573972,ARLEdZl6zE,Will i get a gap year offer at Hack Club,YES,1,0.276,SimpleStrategy,YES underpriced at 27.6%,1
+2026-03-24T19:41:08.574198,600ZpcE695,Will Joe Biden live to see the end of the US-Iran ,NO,1,0.169,SimpleStrategy,NO underpriced at 16.9%,1
+2026-03-24T19:41:08.574557,w9BCbshKra,"Will """"The AI Doc"" is coming out March 26"" make th",YES,1,0.105,SimpleStrategy,YES underpriced at 10.5%,1
+2026-03-24T19:41:08.574920,6AuR0pt2A5,Will Lynas LAMP samarium oxide production exceed 5,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T19:41:08.575392,zn0dUqAuSL,Will Lynas LAMP NdPr oxide production exceed 3500 ,YES,1,0.210,SimpleStrategy,YES underpriced at 21.0%,1
+2026-03-24T19:41:08.575709,ZCnPpEIPug,Will the Dow hit 50k before the number of American,NO,1,0.122,SimpleStrategy,NO underpriced at 12.2%,1
+2026-03-24T19:41:08.575938,LluQRCCIZS,"Will the ""Dead by April"" AI agent earn a net profi",YES,1,0.291,SimpleStrategy,YES underpriced at 29.1%,1
+2026-03-24T19:41:08.576468,OgnlLCUuCA,Is this jigsaw puzzle missing some piece?,NO,1,0.143,SimpleStrategy,NO underpriced at 14.3%,1
+2026-03-24T19:41:08.577249,dzA08Pus6Z,"Is Donald Trump going to say, ""Should I exterminat",YES,1,0.108,SimpleStrategy,YES underpriced at 10.8%,1
+2026-03-24T19:41:08.578308,0g2hytt9uN,Will any major Hollywood film released before 2027,YES,1,0.143,SimpleStrategy,YES underpriced at 14.3%,1
+2026-03-24T19:41:08.580205,sUEn62Llgz,Are there more forks than spoons in the world?,NO,1,0.260,SimpleStrategy,NO underpriced at 26.0%,1
+2026-03-24T19:41:08.580899,50Nz2tOC6u,Will the proposed redistricting amendment in Virgi,NO,1,0.273,SimpleStrategy,NO underpriced at 27.3%,1
+2026-03-24T19:41:08.581115,pUyRCAUC6s,Will the U.S reach a diplomatic agreement with Cub,YES,2,0.031,SimpleStrategy,YES underpriced at 3.1%,2
+2026-03-24T19:41:08.581846,AEz28t0Lsd,Will I have any critical disengagements driving 20,YES,1,0.240,SimpleStrategy,YES underpriced at 24.0%,1
+2026-03-24T19:41:08.582528,IgN0uNOzzS,Will AI Research Be Mostly Autonomous By June 1 20,YES,1,0.300,SimpleStrategy,YES underpriced at 30.0%,1
+2026-03-24T19:41:08.583049,AIsNSs5nZh,Will Nectome's human preservation protocol be publ,NO,1,0.311,SimpleStrategy,NO underpriced at 31.1%,1
+2026-03-24T19:41:08.583271,6dpgZlUgO2,"Will Nectome perform 1,000+ brain preservations in",YES,1,0.300,SimpleStrategy,YES underpriced at 30.0%,1
+2026-03-24T19:41:08.583684,cAlnNgnAlO,Will Nectome preserve at least one human by the en,NO,1,0.318,SimpleStrategy,NO underpriced at 31.8%,1
+2026-03-24T19:41:08.584224,Ag8NASutzO,Will V’s penis touch G’s sex doll by the end of th,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T19:41:08.584752,c2p6sUpg9E,Will Europe find a peaceful agreement with Iran to,YES,1,0.195,SimpleStrategy,YES underpriced at 19.5%,1
+2026-03-24T19:41:08.585001,RsZ0CLIqqO,Will a major tech company publicly pause or limit ,YES,1,0.203,SimpleStrategy,YES underpriced at 20.3%,1
+2026-03-24T19:41:08.585308,ulLsRqSEtc,"Will Bitcoin reach $120,000 USD at any point befor",YES,1,0.230,SimpleStrategy,YES underpriced at 23.0%,1
+2026-03-24T19:41:08.585631,SEEIQgQccl,"Will Bitcoin be above $75,000 on April 18, 2026?",YES,1,0.242,SimpleStrategy,YES underpriced at 24.2%,1
+2026-03-24T19:41:08.586170,fGpQ4cmWsX,"Will ""Personality Self-Replicators"" make the top f",YES,1,0.120,SimpleStrategy,YES underpriced at 12.0%,1
+2026-03-24T19:41:08.586684,2D2Wgfohcz,"Will ""Requiem for a Transhuman Timeline"" make the ",YES,1,0.079,SimpleStrategy,YES underpriced at 7.9%,1
+2026-03-24T19:41:08.587595,pulqzqzCnA,Will the NSF send offer letters for the 2026-2027 ,YES,1,0.299,SimpleStrategy,YES underpriced at 29.9%,1
+2026-03-24T19:41:08.587919,NLc258gpcs,Will Oliver Larkin win the Florida 23rd Democratic,YES,1,0.251,SimpleStrategy,YES underpriced at 25.1%,1
+2026-03-24T19:41:08.588385,G9HdpyREaC,"Will ""It Is Reasonable To Research How To Use Mode",YES,1,0.103,SimpleStrategy,YES underpriced at 10.3%,1
+2026-03-24T19:41:08.588905,PIyI89dLug,(experimental) markets on probabilities under 1%,YES,2,0.011,SimpleStrategy,YES underpriced at 1.1%,2
+2026-03-24T19:41:08.589159,P2A8OOhcE9,Will Iran launch the 100th wave of missile/drone s,YES,1,0.143,SimpleStrategy,YES underpriced at 14.3%,1
+2026-03-24T19:41:08.589523,tRpQIC922l,Will I get JMO HM,NO,2,0.060,SimpleStrategy,NO underpriced at 6.0%,2
+2026-03-24T19:41:08.589778,0Iz8Pycztz,Will there be US troops in Iran’s Kharg island bef,YES,1,0.322,SimpleStrategy,YES underpriced at 32.2%,1
+2026-03-24T19:41:08.590214,SrtoF6PcbH,"Will ""PSA: Predictions markets often have very low",YES,1,0.089,SimpleStrategy,YES underpriced at 8.9%,1
+2026-03-24T19:41:08.590664,9rCTjbJpZB,"Will ""You can’t imitation-learn how to continual-l",YES,1,0.086,SimpleStrategy,YES underpriced at 8.6%,1
+2026-03-24T19:41:08.592045,58hupLdSNu,Will Iran cease to exist in 2026?,YES,2,0.034,SimpleStrategy,YES underpriced at 3.4%,2
+2026-03-24T19:41:08.592539,8PEt9Auh0c,Will China get involved in the Iran war.,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T19:41:08.592923,ACyAAgE5hN,Will I exercise every single day until April?,NO,1,0.240,SimpleStrategy,NO underpriced at 24.0%,1
+2026-03-24T19:41:08.594010,A2PhsZQZ6A,Will I still think ergocidity economics is cranker,NO,2,0.060,SimpleStrategy,NO underpriced at 6.0%,2
+2026-03-24T19:41:08.594762,qPlyQpsR56,Will Century High School (MN) qualify for Science ,YES,2,0.047,SimpleStrategy,YES underpriced at 4.7%,2
+2026-03-24T19:41:08.596325,lqRAnA8qPO,Will Kalshi pay $1 billion for a perfect bracket?,YES,2,0.009,SimpleStrategy,YES underpriced at 0.9%,2
+2026-03-24T19:41:08.598755,9SE0cUAS2A,Will Trump and Xi meet as scheduled on March 31st?,YES,2,0.022,SimpleStrategy,YES underpriced at 2.2%,2
+2026-03-24T19:41:08.599111,LgRyL5N08c,Will Trump get his third impeachment before 2027?,YES,1,0.124,SimpleStrategy,YES underpriced at 12.4%,1
+2026-03-24T19:41:08.600294,EEhLNuN0Zd,Will there be a tie at the 2027 Oscars?,YES,1,0.096,SimpleStrategy,YES underpriced at 9.6%,1
+2026-03-24T19:41:08.600486,E8tUscIZRA,Will NASA's Artemis II mission successfully launch,NO,1,0.289,SimpleStrategy,NO underpriced at 28.9%,1
+2026-03-24T19:41:08.600732,286ycOt8cp,Will Spurs aka Tottenham Hotspur be relegated from,YES,1,0.237,SimpleStrategy,YES underpriced at 23.7%,1
+2026-03-24T19:41:08.601321,ZOusqItSpL,Will Benjamin Netanyahu be alive on December 31 20,NO,1,0.110,SimpleStrategy,NO underpriced at 11.0%,1
+2026-03-24T19:41:08.601573,zL6InOddlE,Will Zelenskyy be alive by the end of March?,NO,2,0.005,SimpleStrategy,NO underpriced at 0.5%,2
+2026-03-24T19:41:08.601903,IUg0RqEINt,"Will the AI-generated Bitcoin song ""Chain of Infin",YES,1,0.220,SimpleStrategy,YES underpriced at 22.0%,1
+2026-03-24T19:41:08.602155,LzOUz8AERI,Will a canal be created in the Strait of Hormuz us,YES,2,0.006,SimpleStrategy,YES underpriced at 0.6%,2
+2026-03-24T19:41:08.603824,Oh02qsnR6P,Will I get accepted to MIT class of 2031?,NO,1,0.150,SimpleStrategy,NO underpriced at 15.0%,1
+2026-03-24T19:41:08.604513,8tLLpnUuzz,"Will President Trump put ""boots on the ground"" in ",NO,1,0.209,SimpleStrategy,NO underpriced at 20.9%,1
+2026-03-24T19:41:08.604915,602nq0yARI,Construction on Billy Bishop to enable jets starte,YES,1,0.310,SimpleStrategy,YES underpriced at 31.0%,1
+2026-03-24T19:41:08.605222,pzd55zg6CI,Will an AI-generated song about Bitcoin reach 1M s,YES,1,0.190,SimpleStrategy,YES underpriced at 19.0%,1
+2026-03-24T19:41:08.605640,AZCP6AlgPI,Will I get accepted to MIT?,NO,1,0.301,SimpleStrategy,NO underpriced at 30.1%,1
+2026-03-24T19:41:08.606168,SpPsSA2ddQ,"Will Valve begin manufacturing RAM before May 1st,",YES,2,0.039,SimpleStrategy,YES underpriced at 3.9%,2
+2026-03-24T19:41:08.606574,9hQy8UE52n,Will I qualify for Mop 2026?,NO,1,0.140,SimpleStrategy,NO underpriced at 14.0%,1
+2026-03-24T19:41:08.606939,uhEZpPyAdL,Will Tucker Carlson be arrested in 2026?,YES,1,0.116,SimpleStrategy,YES underpriced at 11.6%,1
+2026-03-24T19:41:08.607397,QAOEyE8ELd,Will a direct military conflict happen between Ira,NO,2,0.037,SimpleStrategy,NO underpriced at 3.7%,2
+2026-03-24T19:41:08.607837,sh5EA2qszO,Will Amberlynn Reid post a video on her demonitize,YES,1,0.262,SimpleStrategy,YES underpriced at 26.2%,1
+2026-03-24T19:41:08.608337,uE8UuZdLtd,"Will the AI-generated Bitcoin song ""Chain of Infin",YES,1,0.145,SimpleStrategy,YES underpriced at 14.5%,1
+2026-03-24T19:41:08.608726,RRdSCLQy2y,Will US take control of Strait of Hormuz before Ap,YES,1,0.180,SimpleStrategy,YES underpriced at 18.0%,1
+2026-03-24T19:41:08.609142,lgyUsyqLtZ,Does she miss her,NO,1,0.310,SimpleStrategy,NO underpriced at 31.0%,1
+2026-03-24T19:41:08.609508,P6zUhduSzP,Will Global Entry and standard TSA airport staffin,YES,1,0.259,SimpleStrategy,YES underpriced at 25.9%,1
+2026-03-24T19:41:08.609828,l9NNUgLS8g,Humanoid robot kills human in Ukrain war in 2026?,YES,1,0.087,SimpleStrategy,YES underpriced at 8.7%,1
+2026-03-24T19:41:08.610851,nQWavk9mnw,"Will ""New LessWrong Editor! (Also, an update to ou",YES,2,0.059,SimpleStrategy,YES underpriced at 5.9%,2
+2026-03-24T19:41:08.613380,8COuCuLQ0Z,Will Poland leave European Union before 2030?,YES,1,0.106,SimpleStrategy,YES underpriced at 10.6%,1
+2026-03-24T19:41:08.614502,td5ALUI5cP,The United States federal gov will institute a Sel,YES,1,0.136,SimpleStrategy,YES underpriced at 13.6%,1
+2026-03-24T19:41:08.614967,zCSsCLlE2Q,Can Thomas Tuchel's new tactics overcome historica,YES,1,0.113,SimpleStrategy,YES underpriced at 11.3%,1
+2026-03-24T19:41:08.615384,qLL8y0qO29,Will Fc Bayern win the Champions League?,YES,1,0.244,SimpleStrategy,YES underpriced at 24.4%,1
+2026-03-24T19:41:08.615787,L0gtQ9dP6S,Will the Citrini scenario happen? [Kalshi],YES,1,0.231,SimpleStrategy,YES underpriced at 23.1%,1
+2026-03-24T19:41:08.616350,h58ZgnnhcO,Will US public opinion shift towards Israel during,YES,1,0.161,SimpleStrategy,YES underpriced at 16.1%,1
+2026-03-24T19:41:08.617037,9Ldt96sSL5,Will Nvidia stock close between $170.00 and $200.0,YES,2,0.034,SimpleStrategy,YES underpriced at 3.4%,2
+2026-03-24T19:41:08.617463,Ey98OcqUZd,OpenAI Goes Broke before 2033 (See criteria),YES,1,0.250,SimpleStrategy,YES underpriced at 25.0%,1
+2026-03-24T19:41:08.617804,EZquUyn2du,Will the United States government detonate a nucle,YES,1,0.124,SimpleStrategy,YES underpriced at 12.4%,1
+2026-03-24T19:41:08.618116,zSyUAUnSgN,Will Wikipedia on or before January 1st 2030 list ,YES,1,0.074,SimpleStrategy,YES underpriced at 7.4%,1
+2026-03-24T19:41:08.618547,ZZIsnZpgQq,Are pigs sentient? [Resolves to superintelligence],NO,1,0.113,SimpleStrategy,NO underpriced at 11.3%,1
+2026-03-24T19:41:08.619187,NZS5REspAs,US escorts commercial ship through Hormuz by March,YES,1,0.092,SimpleStrategy,YES underpriced at 9.2%,1
+2026-03-24T19:41:08.619727,56cU0sptPS,Romania's Eurovision Song Contest 2026 entry disqu,YES,1,0.148,SimpleStrategy,YES underpriced at 14.8%,1
+2026-03-24T19:41:08.619953,8uhPZzgdII,Is the US government the mystery oil futures selle,YES,1,0.149,SimpleStrategy,YES underpriced at 14.9%,1
+2026-03-24T19:41:08.620149,95n0tS2dud,Will the US try to capture or blockade kharg islan,YES,1,0.300,SimpleStrategy,YES underpriced at 30.0%,1
+2026-03-24T19:41:08.620414,Z8IZEA9zPO,Will Iran become more authoritarian in 2026?,NO,1,0.290,SimpleStrategy,NO underpriced at 29.0%,1
+2026-03-24T19:41:08.621061,2E6hU85AIE,$TRUMP $8 by the end of the March,YES,2,0.020,SimpleStrategy,YES underpriced at 2.0%,2
+2026-03-24T19:41:08.621933,RhUqc669uZ,In two years time AI pornography will generate twi,YES,1,0.121,SimpleStrategy,YES underpriced at 12.1%,1
+2026-03-24T19:41:08.622572,qNNg0CqN6N,Will the 2026 Triton Jeju $100K Main Event exceed ,NO,1,0.196,SimpleStrategy,NO underpriced at 19.6%,1
+2026-03-24T19:41:08.622909,p5nE0uElR8,Will there be at least one cutaway gag in the firs,NO,1,0.119,SimpleStrategy,NO underpriced at 11.9%,1
+2026-03-24T19:41:08.623237,y6qu9LhuCR,Will the Trump administration detonate a nuclear b,YES,1,0.085,SimpleStrategy,YES underpriced at 8.5%,1
+2026-03-24T19:41:08.623494,znuzCy0AEt,Italy judicial reform: Will turnout at the March 2,YES,1,0.246,SimpleStrategy,YES underpriced at 24.6%,1
+2026-03-24T19:41:08.623786,ch5hlQzNQN,The Amazing Digital Circus Finale Released in 2026,NO,1,0.100,SimpleStrategy,NO underpriced at 10.0%,1
+2026-03-24T19:41:08.624777,9mp6vBwxit,"Will ""Ilya Sutskever Deposition Transcript"" make t",YES,1,0.091,SimpleStrategy,YES underpriced at 9.1%,1

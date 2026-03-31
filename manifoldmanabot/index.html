@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dayli Bot Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="topbar shell">
+    <div class="brand-row">
+      <div class="brand-content">
+        <div class="logo-wrapper">
+          <i class="fas fa-chart-line logo-icon"></i>
+        </div>
+        <div>
+          <p class="eyebrow">Dayli Operations</p>
+          <h1>Trading Console</h1>
+        </div>
+      </div>
+    </div>
+    <div class="account-area" id="accountArea">
+      <button class="account-chip" id="accountChip" type="button" aria-label="Toggle account panel" aria-expanded="true" aria-controls="accountPanel">
+        <div class="avatar" id="accountAvatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <p class="account-name" id="accountName">No account</p>
+          <p class="account-sub" id="accountSub">Click to connect</p>
+        </div>
+        <i class="fas fa-chevron-down dropdown-icon"></i>
+      </button>
+
+      <section class="card account-panel" id="accountPanel">
+        <h2>Account Setup</h2>
+        <p class="muted">Set display name and paste your Manifold API key here.</p>
+        <form id="accountForm" class="form-grid" autocomplete="off">
+          <label class="wide">
+            <span>Display name</span>
+            <input id="displayNameInput" type="text" placeholder="Alex" required>
+          </label>
+          <label class="wide">
+            <span>Manifold API key</span>
+            <input id="apiKeyInput" type="password" placeholder="Enter only to add/update key">
+          </label>
+          <div class="actions wide">
+            <button id="connectBtn" class="btn" type="submit">Create & Connect</button>
+            <button id="disconnectBtn" class="btn btn-secondary" type="button">Disconnect</button>
+          </div>
+        </form>
+        <p id="connectionStatus" class="status">Connection: not configured</p>
+      </section>
+    </div>
+  </header>
+
+  <nav class="top-nav">
+    <div class="shell top-nav-inner" aria-label="Dashboard sections">
+      <a class="tab-btn active" href="#/overview" data-tab="overview"><i class="fas fa-home"></i> Overview</a>
+      <a class="tab-btn" href="#/markets" data-tab="markets"><i class="fas fa-chart-bar"></i> Markets</a>
+      <a class="tab-btn" href="#/trades" data-tab="trades"><i class="fas fa-receipt"></i> Trades</a>
+      <a class="tab-btn" href="#/intel" data-tab="intel"><i class="fas fa-brain"></i> Intel</a>
+    </div>
+  </nav>
+
+  <main class="layout shell" id="mainLayout">
+    <section class="toolbar card">
+      <div>
+        <h2><i class="fas fa-sliders-h"></i> Control Panel</h2>
+        <p class="muted">Refresh account details and live Manifold API data.</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshBtn" class="btn btn-primary">
+          <i class="fas fa-sync-alt"></i> Refresh Data
+        </button>
+        <p id="realtimeStatus" class="muted">
+          <i class="fas fa-signal"></i> Realtime: checking...
+        </p>
+        <p id="lastUpdated" class="muted">
+          <i class="far fa-clock"></i> Last updated: -
+        </p>
+      </div>
+    </section>
+
+    <!-- Bot Control & Analytics Row -->
+    <div class="two-col" id="controlAnalyticsSection" data-tab-section="overview">
+      <!-- Bot Control Panel -->
+      <section class="card bot-control-card">
+        <h2><i class="fas fa-robot"></i> Bot Control</h2>
+        <div class="bot-status-display">
+          <div class="bot-status-indicator" id="botStatusIndicator">
+            <span class="status-dot status-dot-unknown"></span>
+            <div>
+              <div class="status-label">Status</div>
+              <div class="status-value" id="botStatusText">Not Configured</div>
+            </div>
+          </div>
+          <div class="bot-uptime">
+            <i class="fas fa-clock"></i>
+            <span id="botUptime">-</span>
+          </div>
+        </div>
+
+        <div class="bot-controls">
+          <button id="botStartBtn" class="btn btn-success" disabled>
+            <i class="fas fa-play"></i> Start Bot
+          </button>
+          <button id="botStopBtn" class="btn btn-danger" disabled>
+            <i class="fas fa-stop"></i> Stop Bot
+          </button>
+        </div>
+
+        <div class="risk-settings" id="riskSettings">
+          <h3>Risk Settings</h3>
+          <form id="riskForm" class="risk-form">
+            <label class="risk-label">
+              <span>Kelly Multiplier</span>
+              <input type="number" id="kellyMultiplier" min="0.1" max="1.0" step="0.1" value="0.25" class="risk-input">
+              <small>0.25 = Quarter Kelly (conservative)</small>
+            </label>
+            <label class="risk-label">
+              <span>Max Bet Size (M$)</span>
+              <input type="number" id="maxBetSize" min="10" max="1000" step="10" value="100" class="risk-input">
+            </label>
+            <label class="risk-label">
+              <span>Min Edge (%)</span>
+              <input type="number" id="minEdge" min="1" max="20" step="1" value="5" class="risk-input">
+              <small>Only trade when edge > this value</small>
+            </label>
+            <label class="risk-label">
+              <span>Max Drawdown (%)</span>
+              <input type="number" id="maxDrawdown" min="5" max="50" step="5" value="20" class="risk-input">
+              <small>Stop bot if portfolio drops > this %</small>
+            </label>
+            <label class="risk-label">
+              <span>Alert Edge Threshold (%)</span>
+              <input type="number" id="alertEdgeThreshold" min="1" max="25" step="1" value="6" class="risk-input">
+            </label>
+            <label class="risk-label">
+              <span><input type="checkbox" id="soundAlerts" checked> Enable Sound Alerts</span>
+            </label>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Performance Analytics -->
+      <section class="card analytics-card">
+        <h2><i class="fas fa-chart-line"></i> Performance Analytics</h2>
+        <p id="analyticsCoachText" class="muted">Insights will appear after data loads.</p>
+        <div class="analytics-grid">
+          <div class="analytic-metric">
+            <div class="analytic-label">Win Rate</div>
+            <div class="analytic-value" id="winRateValue">-</div>
+            <div class="analytic-sublabel">Resolved Profitable</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">ROI</div>
+            <div class="analytic-value" id="roiValue">-</div>
+            <div class="analytic-sublabel">Return on Investment</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">Sharpe Ratio</div>
+            <div class="analytic-value" id="sharpeValue">-</div>
+            <div class="analytic-sublabel">Risk-Adjusted Returns</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">Avg Trade</div>
+            <div class="analytic-value" id="avgTradeValue">-</div>
+            <div class="analytic-sublabel">Average Profit/Loss</div>
+          </div>
+        </div>
+        <div class="edge-calculator" id="edgeCalculator">
+          <h3><i class="fas fa-calculator"></i> Kelly Edge Calculator</h3>
+          <p class="muted">Calculate optimal bet sizing for detected opportunities</p>
+          <div class="edge-input-group">
+            <label>
+              <span>My Edge (%)</span>
+              <input type="number" id="edgeInput" min="0" max="100" step="1" placeholder="5" class="edge-input">
+            </label>
+            <label>
+              <span>Current Probability (%)</span>
+              <input type="number" id="probInput" min="1" max="99" step="1" placeholder="50" class="edge-input">
+            </label>
+            <button id="calculateEdgeBtn" class="btn btn-secondary">Calculate</button>
+          </div>
+          <div id="edgeResults" class="edge-results" style="display: none;">
+            <div class="edge-result-row">
+              <span>Kelly Percentage:</span>
+              <strong id="kellyPercent">-</strong>
+            </div>
+            <div class="edge-result-row">
+              <span>Recommended Bet:</span>
+              <strong id="recommendedBet">-</strong>
+            </div>
+            <div class="edge-result-row">
+              <span>Expected Value:</span>
+              <strong id="expectedValue" class="gain">-</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card metrics" id="dashboardSection" data-tab-section="overview">
+      <div class="section-header">
+        <p class="eyebrow"><i class="fas fa-wallet"></i> Portfolio Overview</p>
+        <span class="live-indicator">
+          <span class="pulse-dot"></span> Live
+        </span>
+      </div>
+      <button id="connectCtaBtn" class="btn btn-primary" type="button" style="display:none;">
+        <i class="fas fa-plug"></i> Connect Account to Start Trading
+      </button>
+      <div class="networth-row">
+        <div class="mana-dot">
+          <i class="fas fa-coins"></i>
+        </div>
+        <p class="networth-value" id="netWorthValue">-</p>
+        <p class="networth-label">net worth</p>
+      </div>
+
+      <div class="metrics-grid chips-grid">
+        <div class="metric chip">
+          <p class="metric-value" id="balanceValue">-</p>
+          <p class="metric-label">balance</p>
+        </div>
+        <div class="metric chip">
+          <p class="metric-value" id="investedValue">-</p>
+          <p class="metric-label">invested</p>
+        </div>
+        <div class="metric chip">
+          <p class="metric-value" id="pnlValue">-</p>
+          <p class="metric-label">profit</p>
+        </div>
+        <div class="metric chip">
+          <p class="metric-value" id="openHoldingsValue">-</p>
+          <p class="metric-label">open</p>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <svg id="portfolioChart" viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Portfolio performance chart">
+          <path id="chartFill" class="chart-fill" d=""></path>
+          <line id="chartCrosshair" class="chart-crosshair" x1="0" y1="20" x2="0" y2="220"></line>
+          <path id="chartInvestedLine" class="chart-line chart-line-invested" d=""></path>
+          <path id="chartBalanceLine" class="chart-line chart-line-balance" d=""></path>
+          <path id="chartLine" class="chart-line chart-line-net" d=""></path>
+          <circle id="chartHoverDot" class="chart-hover-dot" cx="0" cy="0" r="4"></circle>
+        </svg>
+        <div id="chartTooltip" class="chart-tooltip" role="status" aria-live="polite"></div>
+      </div>
+      <div class="chart-legend-grid" aria-live="polite">
+        <div class="chart-legend-item"><span class="swatch swatch-net"></span>Net worth: <strong id="chartLegendNet">-</strong></div>
+        <div class="chart-legend-item"><span class="swatch swatch-balance"></span>Balance: <strong id="chartLegendBalance">-</strong></div>
+        <div class="chart-legend-item"><span class="swatch swatch-invested"></span>Invested: <strong id="chartLegendInvested">-</strong></div>
+        <div class="chart-legend-item">Range change: <strong id="chartLegendChange">-</strong></div>
+        <div class="chart-legend-item">Max drawdown: <strong id="chartLegendDrawdown">-</strong></div>
+        <div class="chart-legend-item">Data points: <strong id="chartLegendPoints">-</strong></div>
+      </div>
+      <div class="perf-pill-row" aria-live="polite">
+        <div class="perf-pill"><span>1D</span><strong id="perf1d">-</strong></div>
+        <div class="perf-pill"><span>7D</span><strong id="perf1w">-</strong></div>
+        <div class="perf-pill"><span>30D</span><strong id="perf1m">-</strong></div>
+        <div class="perf-pill"><span>ALL</span><strong id="perfAll">-</strong></div>
+      </div>
+
+      <div class="range-row" role="group" aria-label="Chart range">
+        <button class="range-btn" id="range1d" type="button">1D</button>
+        <button class="range-btn active" id="range1w" type="button">1W</button>
+        <button class="range-btn" id="range1m" type="button">1M</button>
+        <button class="range-btn" id="rangeAll" type="button">ALL</button>
+      </div>
+
+      <div class="ops-signal-grid" aria-live="polite">
+        <div class="ops-signal"><span>Qualifier Pass</span><strong id="opsQualifierPass">-</strong></div>
+        <div class="ops-signal"><span>Proposal Rate</span><strong id="opsProposalRate">-</strong></div>
+        <div class="ops-signal"><span>Error Rate (24h)</span><strong id="opsErrorRate">-</strong></div>
+        <div class="ops-signal"><span>Data Freshness</span><strong id="opsFreshness">-</strong></div>
+      </div>
+
+      <p id="statusText" class="status">Status: loading...</p>
+    </section>
+
+    <section class="card" id="holdingsSection" data-tab-section="overview">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-briefcase"></i> Current Holdings</h2>
+        <span class="badge-count" id="holdingsCount">0 positions</span>
+      </div>
+      <p id="holdingsStatusText" class="status">Holdings: waiting for connection...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Outcome</th>
+              <th>Shares</th>
+              <th>Avg Price</th>
+              <th>Value</th>
+              <th>PnL</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="holdingsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Arbitrage Opportunities Section -->
+    <section class="card arb-card" id="arbSection" style="display: none;" data-tab-section="markets">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-gem"></i> Arbitrage Opportunities</h2>
+        <span class="badge badge-profit">
+          <i class="fas fa-dollar-sign"></i> Risk-Free Profit
+        </span>
+      </div>
+      <p class="muted">Guaranteed profit opportunities detected by the backend scanner.</p>
+      <div id="arbList" class="arb-grid"></div>
+      <p id="arbStatus" class="status">No arbitrage opportunities detected.</p>
+    </section>
+
+    <section class="card" id="trendingSection" style="display: none;" data-tab-section="markets">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-fire"></i> Trending Markets</h2>
+        <span class="badge-count" id="trendingCount">0 markets</span>
+      </div>
+      <div id="trendingMarketsList" class="breaking-news-grid"></div>
+    </section>
+
+    <!-- Breaking News Section -->
+    <section class="card breaking-news-card" id="breakingNewsSection" style="display: none;" data-tab-section="markets">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-bolt"></i> Breaking News</h2>
+        <span class="badge badge-live">
+          <span class="pulse-dot"></span> New Markets (24h)
+        </span>
+      </div>
+      <div id="breakingNewsList" class="breaking-news-grid"></div>
+    </section>
+
+    <!-- Market Explorer Section -->
+    <section class="card" id="marketSection" data-tab-section="markets">
+      <div class="toolbar-inline">
+        <div>
+          <h2><i class="fas fa-chart-bar"></i> Market Explorer</h2>
+          <p class="muted">Find profitable opportunities with search, filters & sorting.</p>
+        </div>
+        <div class="inline-actions">
+          <label class="field-inline">
+            <span>Limit</span>
+            <input id="marketLimitInput" type="number" min="10" max="1000" value="120">
+          </label>
+          <button id="refreshMarketsBtn" class="btn" type="button">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Market Discovery Controls -->
+      <div class="market-controls">
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            id="marketSearchInput" 
+            class="market-search" 
+            placeholder="Search markets by question..."
+            autocomplete="off"
+          >
+          <span id="searchResultCount" class="search-count"></span>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="filters-row">
+          <label class="filter-group">
+            <i class="fas fa-filter"></i>
+            <select id="statusFilter" class="filter-select">
+              <option value="all">All Status</option>
+              <option value="open" selected>Open Only</option>
+              <option value="closed">Closed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </label>
+
+          <label class="filter-group">
+            <i class="fas fa-tint"></i>
+            <select id="liquidityFilter" class="filter-select">
+              <option value="all">All Liquidity</option>
+              <option value="high">High (>M$1000)</option>
+              <option value="medium">Medium (M$100-1000)</option>
+              <option value="low">Low (<M$100)</option>
+            </select>
+          </label>
+          <label class="filter-group">
+            <i class="fas fa-shield-alt"></i>
+            <select id="ambiguityFilter" class="filter-select">
+              <option value="all">All Clarity</option>
+              <option value="clear">Clear Resolution</option>
+              <option value="medium">Medium Clarity</option>
+              <option value="risky">High Ambiguity Risk</option>
+            </select>
+          </label>
+
+          <label class="filter-group">
+            <i class="fas fa-sort"></i>
+            <select id="sortControl" class="filter-select">
+              <option value="volume">Volume (High to Low)</option>
+              <option value="liquidity">Liquidity (High to Low)</option>
+              <option value="probability">Probability (High to Low)</option>
+              <option value="created">Recently Created</option>
+              <option value="trending">Trending (Volume ├ù Recency)</option>
+            </select>
+          </label>
+          <label class="filter-group">
+            <i class="fas fa-tags"></i>
+            <select id="categoryFilter" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="Crypto">Crypto</option>
+              <option value="Politics">Politics</option>
+              <option value="Sports">Sports</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="General">General</option>
+            </select>
+          </label>
+
+          <button id="clearFilters" class="btn-filter-clear" type="button">
+            <i class="fas fa-times"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <p id="marketStatusText" class="status">Markets: loading...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Question</th>
+              <th>Prob</th>
+              <th>╬ö24h</th>
+              <th>Trend</th>
+              <th>Liquidity</th>
+              <th>Volume 24h</th>
+              <th>Clarity</th>
+              <th>Type</th>
+              <th>Resolved</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="marketsTable"></tbody>
+        </table>
+      </div>
+      <h3 class="subhead">Selected Market Raw JSON</h3>
+      <pre id="marketRawJson" class="json-box">Select a row to inspect full market payload.</pre>
+    </section>
+
+    <section class="card" id="recentBetsSection" data-tab-section="trades">
+      <h2><i class="fas fa-history"></i> Recent Bets</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Market</th>
+              <th>Side</th>
+              <th>Size</th>
+              <th>Prob</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="betsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card two-col" id="pnlInsightsSection" data-tab-section="trades">
+      <div>
+        <h2><i class="fas fa-table"></i> P&L Breakdown</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Trades</th>
+                <th>P&L</th>
+                <th>ROI</th>
+              </tr>
+            </thead>
+            <tbody id="pnlBreakdownTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2><i class="fas fa-medal"></i> Best / Worst Trades</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Market</th>
+                <th>P&L</th>
+              </tr>
+            </thead>
+            <tbody id="bestWorstTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card two-col" id="intelSection" data-tab-section="intel">
+      <div>
+        <h2><i class="fas fa-newspaper"></i> Market News Feed</h2>
+        <div id="newsFeedList" class="breaking-news-grid"></div>
+      </div>
+      <div>
+        <h2><i class="fas fa-th"></i> Volume Heatmap</h2>
+        <canvas id="volumeHeatmap" width="520" height="260"></canvas>
+        <p class="muted">Darker cells represent higher relative liquidity/volume.</p>
+      </div>
+    </section>
+
+    <section class="card two-col" id="logsSection" data-tab-section="intel">
+      <div>
+        <h2><i class="fas fa-exclamation-triangle"></i> Recent Errors</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="errorsTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2><i class="fas fa-brain"></i> Strategy Insights</h2>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Market</th>
+                <th>Decision</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="strategyTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Trade Execution Panel (Slide-out) -->
+  <div id="tradePanel" class="trade-panel" style="display: none;">
+    <div class="trade-panel-overlay" id="tradePanelOverlay"></div>
+    <div class="trade-panel-content">
+      <div class="trade-panel-header">
+        <h2><i class="fas fa-exchange-alt"></i> Execute Trade</h2>
+        <button class="trade-panel-close" id="tradePanelClose" type="button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="trade-panel-body">
+        <div id="tradeMarketInfo" class="trade-market-info"></div>
+
+        <form id="tradeForm" class="trade-form">
+          <label class="trade-label">
+            <span>Trade Type</span>
+            <div class="trade-type-buttons">
+              <button type="button" class="trade-type-btn active" data-type="buy" id="tradeBuyBtn">
+                <i class="fas fa-arrow-up"></i> Buy
+              </button>
+              <button type="button" class="trade-type-btn" data-type="sell" id="tradeSellBtn">
+                <i class="fas fa-arrow-down"></i> Sell
+              </button>
+            </div>
+          </label>
+
+          <label class="trade-label">
+            <span>Amount (Mana)</span>
+            <input 
+              type="number" 
+              id="tradeAmount" 
+              class="trade-input" 
+              placeholder="100"
+              min="1"
+              step="1"
+              required
+            >
+            <div class="trade-amount-presets">
+              <button type="button" class="btn btn-secondary btn-preset" data-amount-preset="quarter">1/4</button>
+              <button type="button" class="btn btn-secondary btn-preset" data-amount-preset="half">1/2</button>
+              <button type="button" class="btn btn-secondary btn-preset" data-amount-preset="max">Max</button>
+            </div>
+          </label>
+
+          <label class="trade-label">
+            <span>Outcome</span>
+            <select id="tradeOutcome" class="trade-select">
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+            </select>
+          </label>
+
+          <div id="tradePreview" class="trade-preview" style="display: none;">
+            <h3>Order Preview</h3>
+            <div class="trade-preview-row">
+              <span>Expected Shares:</span>
+              <strong id="previewShares">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>Average Price:</span>
+              <strong id="previewPrice">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>Potential Profit:</span>
+              <strong id="previewProfit" class="gain">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>New Probability:</span>
+              <strong id="previewNewProb">-</strong>
+            </div>
+          </div>
+
+          <div class="trade-actions">
+            <button type="button" id="tradePreviewBtn" class="btn btn-secondary">
+              <i class="fas fa-calculator"></i> Preview Order
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-check"></i> Confirm Trade
+            </button>
+          </div>
+
+          <p id="tradeStatus" class="status"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="positionModal" class="trade-panel" style="display: none;">
+    <div class="trade-panel-overlay" id="positionModalOverlay"></div>
+    <div class="trade-panel-content">
+      <div class="trade-panel-header">
+        <h2><i class="fas fa-briefcase"></i> Position Details</h2>
+        <button class="trade-panel-close" id="positionModalClose" type="button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="trade-panel-body">
+        <div id="positionModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="../app.js"></script>
+</body>
+</html>
+
+
+
