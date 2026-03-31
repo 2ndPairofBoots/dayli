@@ -31,6 +31,7 @@ let ws = null;
 let previousProbByMarket = new Map();
 let lastOpportunityAlertAt = 0;
 let lastOpportunityMarketId = null;
+let realtimeConnected = false;
 
 function setTrendClass(id, value) {
   const el = qs(id);
@@ -45,6 +46,14 @@ function setText(id, value) {
   const el = qs(id);
   if (!el) return;
   el.textContent = value;
+}
+
+function setValueWithTrend(id, text, trendClass = "") {
+  const el = qs(id);
+  if (!el) return;
+  el.classList.remove("gain", "loss", "neutral");
+  if (trendClass) el.classList.add(trendClass);
+  el.textContent = text;
 }
 
 function escapeHtml(value) {
@@ -1464,17 +1473,70 @@ function notifyOpportunity(market) {
   }
 }
 
+function updateRealtimeStatus(connected, detail = "") {
+  realtimeConnected = !!connected;
+  const el = qs("realtimeStatus");
+  if (!el) return;
+  const suffix = detail ? ` (${detail})` : "";
+  el.textContent = `Realtime: ${connected ? "connected" : "disconnected"}${suffix}`;
+  el.classList.remove("gain", "loss");
+  el.classList.add(connected ? "gain" : "loss");
+}
+
+function updateOpsSignals({ errors = [], strategy = [], portfolio = [] }) {
+  const decisions = (strategy || []).slice(-250);
+  const qualified = decisions.filter((r) => String(r.decision || "").toLowerCase() === "qualified").length;
+  const proposed = decisions.filter((r) => String(r.decision || "").toLowerCase() === "proposed").length;
+  const total = decisions.length;
+
+  const passRate = total > 0 ? (qualified / total) * 100 : null;
+  const proposalRate = total > 0 ? (proposed / total) * 100 : null;
+  const passTrend = passRate == null ? "neutral" : passRate >= 35 ? "gain" : passRate >= 15 ? "neutral" : "loss";
+  const proposalTrend = proposalRate == null ? "neutral" : proposalRate >= 8 ? "gain" : proposalRate >= 3 ? "neutral" : "loss";
+
+  setValueWithTrend("opsQualifierPass", passRate == null ? "-" : `${fmtNum(passRate, 1)}%`, passTrend);
+  setValueWithTrend("opsProposalRate", proposalRate == null ? "-" : `${fmtNum(proposalRate, 1)}%`, proposalTrend);
+
+  const now = Date.now();
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+  const recentErrors = (errors || []).filter((e) => {
+    const ts = Date.parse(String(e.timestamp || ""));
+    return Number.isFinite(ts) && ts >= oneDayAgo;
+  }).length;
+  const errRate = total > 0 ? (recentErrors / total) * 100 : 0;
+  const errTrend = errRate > 20 ? "loss" : errRate > 8 ? "neutral" : "gain";
+  setValueWithTrend("opsErrorRate", `${fmtNum(errRate, 1)}%`, errTrend);
+
+  const latest = (portfolio || [])[portfolio.length - 1];
+  const freshTs = latest ? parsePortfolioTimestamp(latest) : null;
+  if (freshTs == null) {
+    setValueWithTrend("opsFreshness", "-", "neutral");
+  } else {
+    const mins = Math.max(0, Math.floor((now - freshTs) / 60000));
+    const freshTrend = mins <= 15 ? "gain" : mins <= 90 ? "neutral" : "loss";
+    setValueWithTrend("opsFreshness", `${mins}m ago`, freshTrend);
+  }
+}
+
 function initWebSocket() {
   try {
     // Placeholder public stream endpoint; falls back silently.
     ws = new WebSocket("wss://manifold.markets/api/v0/ws");
-    ws.onopen = () => showToast("Realtime feed connected");
+    ws.onopen = () => {
+      updateRealtimeStatus(true);
+      showToast("Realtime feed connected");
+    };
     ws.onmessage = () => {
       // On any update, refresh market filters quickly.
       if (lastMarkets.length) applyMarketFiltersAndSort();
     };
-    ws.onclose = () => setTimeout(initWebSocket, 5000);
-    ws.onerror = () => {};
+    ws.onclose = () => {
+      updateRealtimeStatus(false, "reconnecting");
+      setTimeout(initWebSocket, 5000);
+    };
+    ws.onerror = () => {
+      updateRealtimeStatus(false, "error");
+    };
   } catch {}
 }
 
@@ -1555,8 +1617,10 @@ async function loadDashboard() {
     const now = new Date();
     setText("lastUpdated", `Last updated: ${now.toLocaleString()}`);
     setText("statusText", "Status: portfolio and trade data loaded");
+    updateOpsSignals({ errors, strategy, portfolio });
   } catch (err) {
     setText("statusText", `Status: failed (${err.message})`);
+    updateOpsSignals({ errors: [], strategy: [], portfolio: [] });
   }
 }
 

@@ -76,6 +76,9 @@
         <button id="refreshBtn" class="btn btn-primary">
           <i class="fas fa-sync-alt"></i> Refresh Data
         </button>
+        <p id="realtimeStatus" class="muted">
+          <i class="fas fa-signal"></i> Realtime: checking...
+        </p>
         <p id="lastUpdated" class="muted">
           <i class="far fa-clock"></i> Last updated: -
         </p>
@@ -272,6 +275,13 @@
         <button class="range-btn active" id="range1w" type="button">1W</button>
         <button class="range-btn" id="range1m" type="button">1M</button>
         <button class="range-btn" id="rangeAll" type="button">ALL</button>
+      </div>
+
+      <div class="ops-signal-grid" aria-live="polite">
+        <div class="ops-signal"><span>Qualifier Pass</span><strong id="opsQualifierPass">-</strong></div>
+        <div class="ops-signal"><span>Proposal Rate</span><strong id="opsProposalRate">-</strong></div>
+        <div class="ops-signal"><span>Error Rate (24h)</span><strong id="opsErrorRate">-</strong></div>
+        <div class="ops-signal"><span>Data Freshness</span><strong id="opsFreshness">-</strong></div>
       </div>
 
       <p id="statusText" class="status">Status: loading...</p>

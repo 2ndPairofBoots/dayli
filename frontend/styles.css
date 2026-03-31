@@ -518,6 +518,49 @@ h2 i {
   color: #cbd5e1;
 }
 
+.ops-signal-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.ops-signal {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #101823;
+  padding: 8px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ops-signal span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ops-signal strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ops-signal strong.gain {
+  color: #4fd1b2;
+}
+
+.ops-signal strong.loss {
+  color: #f87171;
+}
+
+.ops-signal strong.neutral {
+  color: #cbd5e1;
+}
+
 .swatch {
   width: 10px;
   height: 10px;
@@ -861,6 +904,10 @@ tr:last-child td {
   }
 
   .perf-pill-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ops-signal-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
