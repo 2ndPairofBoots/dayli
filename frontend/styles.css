@@ -430,6 +430,11 @@ h2 i {
   z-index: 2;
 }
 
+.chart-tooltip strong {
+  color: #eafff9;
+  font-weight: 700;
+}
+
 .chart-legend-grid {
   margin-top: 10px;
   display: grid;
@@ -455,6 +460,45 @@ h2 i {
 }
 
 .chart-legend-item .loss {
+  color: #f87171;
+}
+
+.perf-pill-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.perf-pill {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #101823;
+  padding: 8px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.perf-pill span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.perf-pill strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.perf-pill strong.gain {
+  color: #4fd1b2;
+}
+
+.perf-pill strong.loss {
   color: #f87171;
 }
 
@@ -798,6 +842,10 @@ tr:last-child td {
 
   .range-row {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .perf-pill-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .form-grid {

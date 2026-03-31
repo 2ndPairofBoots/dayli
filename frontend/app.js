@@ -475,6 +475,31 @@ function setChartLegendValue(id, text, trendClass = "") {
   el.textContent = text;
 }
 
+function formatDelta(delta, pct) {
+  const sign = delta >= 0 ? "+" : "";
+  const pctSign = pct >= 0 ? "+" : "";
+  return `${sign}${formatMana(delta)} (${pctSign}${fmtNum(pct, 2)}%)`;
+}
+
+function nearestPointAtOrBefore(series, cutoffTs) {
+  let candidate = null;
+  for (const point of series) {
+    if (point.ts == null || point.ts > cutoffTs) break;
+    candidate = point;
+  }
+  return candidate || series[0];
+}
+
+function updatePerformancePill(id, nowValue, baseValue) {
+  if (!Number.isFinite(nowValue) || !Number.isFinite(baseValue) || baseValue === 0) {
+    setChartLegendValue(id, "-");
+    return;
+  }
+  const delta = nowValue - baseValue;
+  const pct = (delta / baseValue) * 100;
+  setChartLegendValue(id, `${delta >= 0 ? "+" : ""}${fmtNum(pct, 2)}%`, delta >= 0 ? "gain" : "loss");
+}
+
 function showChartTooltip(point, event) {
   const chart = qs("portfolioChart");
   const box = chart?.parentElement;
@@ -487,8 +512,11 @@ function showChartTooltip(point, event) {
   dot.style.display = "block";
 
   const dateLabel = point.ts ? new Date(point.ts).toLocaleString() : "time: n/a";
+  const delta = Number.isFinite(point.delta) ? point.delta : 0;
+  const deltaPct = Number.isFinite(point.deltaPct) ? point.deltaPct : 0;
   tip.innerHTML = [
-    `net: ${formatMana(point.value)}`,
+    `net: <strong>${formatMana(point.value)}</strong>`,
+    `move: <strong class="${delta >= 0 ? "gain" : "loss"}">${formatDelta(delta, deltaPct)}</strong>`,
     `balance: ${formatMana(point.balance)}`,
     `invested: ${formatMana(point.invested)}`,
     escapeHtml(dateLabel),
@@ -600,6 +628,18 @@ function drawPortfolioChart(portfolioRows) {
   if (!line || !fill || !balanceLine || !investedLine) return;
 
   const rows = filterRowsByRange((portfolioRows || []).slice(-400));
+  const allRows = (portfolioRows || []).slice(-800);
+  const fullSeries = allRows
+    .map((r) => {
+      const balance = parseNum(r.balance);
+      const invested = parseNum(r.invested);
+      return {
+        ts: parsePortfolioTimestamp(r),
+        net: balance + invested,
+      };
+    })
+    .filter((v) => Number.isFinite(v.net) && v.ts != null)
+    .sort((a, b) => a.ts - b.ts);
   const pointsData = rows
     .map((r) => {
       const balance = parseNum(r.balance);
@@ -625,6 +665,10 @@ function drawPortfolioChart(portfolioRows) {
     setChartLegendValue("chartLegendChange", "-");
     setChartLegendValue("chartLegendDrawdown", "-");
     setChartLegendValue("chartLegendPoints", "0");
+    setChartLegendValue("perf1d", "-");
+    setChartLegendValue("perf1w", "-");
+    setChartLegendValue("perf1m", "-");
+    setChartLegendValue("perfAll", "-");
     hideChartTooltip();
     return;
   }
@@ -645,7 +689,21 @@ function drawPortfolioChart(portfolioRows) {
     const y = height - padY - ((d.net - min) / span) * (height - padY * 2);
     const yBalance = height - padY - ((d.balance - min) / span) * (height - padY * 2);
     const yInvested = height - padY - ((d.invested - min) / span) * (height - padY * 2);
-    return { x, y, yBalance, yInvested, value: d.net, balance: d.balance, invested: d.invested, ts: d.ts };
+    const prevNet = i > 0 ? pointsData[i - 1].net : d.net;
+    const delta = d.net - prevNet;
+    const deltaPct = prevNet !== 0 ? (delta / prevNet) * 100 : 0;
+    return {
+      x,
+      y,
+      yBalance,
+      yInvested,
+      value: d.net,
+      balance: d.balance,
+      invested: d.invested,
+      ts: d.ts,
+      delta,
+      deltaPct,
+    };
   });
   chartPlotPoints = points;
 
@@ -683,6 +741,23 @@ function drawPortfolioChart(portfolioRows) {
   );
   setChartLegendValue("chartLegendDrawdown", `${fmtNum(maxDrawdown, 2)}%`, maxDrawdown > 10 ? "loss" : "");
   setChartLegendValue("chartLegendPoints", String(points.length));
+
+  if (fullSeries.length >= 2) {
+    const now = fullSeries[fullSeries.length - 1];
+    const oneDayBase = nearestPointAtOrBefore(fullSeries, now.ts - chartRangeMs["1d"]);
+    const oneWeekBase = nearestPointAtOrBefore(fullSeries, now.ts - chartRangeMs["1w"]);
+    const oneMonthBase = nearestPointAtOrBefore(fullSeries, now.ts - chartRangeMs["1m"]);
+    const allBase = fullSeries[0];
+    updatePerformancePill("perf1d", now.net, oneDayBase.net);
+    updatePerformancePill("perf1w", now.net, oneWeekBase.net);
+    updatePerformancePill("perf1m", now.net, oneMonthBase.net);
+    updatePerformancePill("perfAll", now.net, allBase.net);
+  } else {
+    setChartLegendValue("perf1d", "-");
+    setChartLegendValue("perf1w", "-");
+    setChartLegendValue("perf1m", "-");
+    setChartLegendValue("perfAll", "-");
+  }
 }
 
 async function verifyManifoldApiKey(apiKey) {
