@@ -1,4 +1,4 @@
-const LOG_BASE = "./logs";
+const LOG_BASE = window.location.pathname.includes("/manifoldmanabot/") ? "../logs" : "./logs";
 
 const paths = {
   bets: `${LOG_BASE}/bets/place_bet_event.csv`,
