@@ -968,6 +968,29 @@ function inferCategory(market) {
   return "General";
 }
 
+function computeResolutionClarity(market) {
+  const question = String(market?.question || "").toLowerCase();
+  const description = String(
+    market?.description ?? market?.textDescription ?? market?.mechanismText ?? market?.details ?? ""
+  ).toLowerCase();
+  const combined = `${question} ${description}`;
+
+  let score = 100;
+  if (combined.length < 80) score -= 8;
+  if (!/\b(by|before|on|at)\b/.test(combined)) score -= 6;
+  if (!/\b(will|whether|is|are|does|do|can)\b/.test(question)) score -= 6;
+  if (/\bmaybe|might|possibly|could|probably|likely\b/.test(combined)) score -= 18;
+  if (/\bsubjective|opinion|vibes|feel|prediction only\b/.test(combined)) score -= 24;
+  if (/\bcreator decision|creator decides|at my discretion|discretion|i decide|i'll decide|my call\b/.test(combined)) score -= 28;
+  if (/\bna\b|n\/a|not applicable|ambiguous|unclear/.test(combined)) score -= 20;
+  if (/\?\?|\bunsure\b|\bunknown\b/.test(combined)) score -= 10;
+
+  score = Math.max(5, Math.min(100, score));
+  if (score >= 70) return { score, level: "clear", label: "Clear", badge: "good" };
+  if (score >= 45) return { score, level: "medium", label: "Medium", badge: "warn" };
+  return { score, level: "risky", label: "Risky", badge: "bad" };
+}
+
 function showMarketRaw(index) {
   const raw = qs("marketRawJson");
   if (!raw) return;
@@ -1038,6 +1061,7 @@ function applyMarketFiltersAndSort() {
   const searchTerm = qs("marketSearchInput")?.value?.toLowerCase() || "";
   const statusFilter = qs("statusFilter")?.value || "all";
   const liquidityFilter = qs("liquidityFilter")?.value || "all";
+  const ambiguityFilter = qs("ambiguityFilter")?.value || "all";
   const categoryFilter = qs("categoryFilter")?.value || "all";
   const sortBy = qs("sortControl")?.value || "volume";
 
@@ -1058,6 +1082,8 @@ function applyMarketFiltersAndSort() {
     if (liquidityFilter === "high" && liquidity < 1000) return false;
     if (liquidityFilter === "medium" && (liquidity < 100 || liquidity >= 1000)) return false;
     if (liquidityFilter === "low" && liquidity >= 100) return false;
+    const clarity = computeResolutionClarity(market);
+    if (ambiguityFilter !== "all" && clarity.level !== ambiguityFilter) return false;
     if (categoryFilter !== "all" && inferCategory(market) !== categoryFilter) return false;
 
     return true;
@@ -1102,7 +1128,9 @@ function applyMarketFiltersAndSort() {
   renderRows(
     "marketsTable",
     filteredMarkets,
-    (m, idx) => `<tr class="market-row" data-index="${idx}">
+    (m, idx) => {
+      const clarity = computeResolutionClarity(m);
+      return `<tr class="market-row" data-index="${idx}">
       <td>${escapeHtml(short(m.id, 14))}</td>
       <td>${escapeHtml(short(m.question, 86))}<br><span class="badge">${escapeHtml(inferCategory(m))}</span></td>
       <td>${fmtNum(parseMarketProbability(m), 3)}</td>
@@ -1110,10 +1138,12 @@ function applyMarketFiltersAndSort() {
       <td>${renderMarketSparkline(m.id)}</td>
       <td>${fmtNum(parseMarketLiquidity(m), 0)}</td>
       <td>${fmtNum(parseMarketVolume24h(m), 0)}</td>
+      <td><span class="badge ${clarity.badge}" title="Resolution clarity score ${clarity.score}/100">${clarity.label}</span></td>
       <td>${escapeHtml(m.outcomeType || "-")}</td>
       <td>${m.isResolved ? "yes" : "no"}</td>
       <td><button class="btn-trade" data-index="${idx}">Trade</button></td>
-    </tr>`
+    </tr>`;
+    }
   );
 
   showMarketRaw(filteredMarkets.length ? 0 : -1);
@@ -1125,7 +1155,7 @@ function applyMarketFiltersAndSort() {
   // Update search count
   const countEl = qs("searchResultCount");
   if (countEl) {
-    if (searchTerm || statusFilter !== "all" || liquidityFilter !== "all" || categoryFilter !== "all") {
+    if (searchTerm || statusFilter !== "all" || liquidityFilter !== "all" || ambiguityFilter !== "all" || categoryFilter !== "all") {
       countEl.textContent = `${filteredMarkets.length} of ${lastMarkets.length}`;
       countEl.style.display = "block";
     } else {
@@ -1179,6 +1209,7 @@ function initMarketDiscoveryControls() {
   const searchInput = qs("marketSearchInput");
   const statusFilter = qs("statusFilter");
   const liquidityFilter = qs("liquidityFilter");
+  const ambiguityFilter = qs("ambiguityFilter");
   const categoryFilter = qs("categoryFilter");
   const sortControl = qs("sortControl");
   const clearBtn = qs("clearFilters");
@@ -1196,6 +1227,7 @@ function initMarketDiscoveryControls() {
             search: searchInput.value,
             status: statusFilter?.value,
             liquidity: liquidityFilter?.value,
+            ambiguity: ambiguityFilter?.value,
             category: categoryFilter?.value,
             sort: sortControl?.value,
           })
@@ -1214,6 +1246,7 @@ function initMarketDiscoveryControls() {
           search: searchInput?.value || "",
           status: statusFilter.value,
           liquidity: liquidityFilter?.value,
+          ambiguity: ambiguityFilter?.value,
           category: categoryFilter?.value,
           sort: sortControl?.value,
         })
@@ -1229,6 +1262,7 @@ function initMarketDiscoveryControls() {
           search: searchInput?.value || "",
           status: statusFilter?.value,
           liquidity: liquidityFilter.value,
+          ambiguity: ambiguityFilter?.value,
           category: categoryFilter?.value,
           sort: sortControl?.value,
         })
@@ -1244,7 +1278,24 @@ function initMarketDiscoveryControls() {
           search: searchInput?.value || "",
           status: statusFilter?.value,
           liquidity: liquidityFilter?.value,
+          ambiguity: ambiguityFilter?.value,
           category: categoryFilter.value,
+          sort: sortControl?.value,
+        })
+      );
+    });
+  }
+  if (ambiguityFilter) {
+    ambiguityFilter.addEventListener("change", () => {
+      applyMarketFiltersAndSort();
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          search: searchInput?.value || "",
+          status: statusFilter?.value,
+          liquidity: liquidityFilter?.value,
+          ambiguity: ambiguityFilter.value,
+          category: categoryFilter?.value,
           sort: sortControl?.value,
         })
       );
@@ -1259,6 +1310,7 @@ function initMarketDiscoveryControls() {
           search: searchInput?.value || "",
           status: statusFilter?.value,
           liquidity: liquidityFilter?.value,
+          ambiguity: ambiguityFilter?.value,
           category: categoryFilter?.value,
           sort: sortControl.value,
         })
@@ -1272,6 +1324,7 @@ function initMarketDiscoveryControls() {
       if (searchInput) searchInput.value = "";
       if (statusFilter) statusFilter.value = "open";
       if (liquidityFilter) liquidityFilter.value = "all";
+      if (ambiguityFilter) ambiguityFilter.value = "all";
       if (categoryFilter) categoryFilter.value = "all";
       if (sortControl) sortControl.value = "volume";
       applyMarketFiltersAndSort();
@@ -1285,6 +1338,7 @@ function initMarketDiscoveryControls() {
       if (searchInput) searchInput.value = saved.search || "";
       if (statusFilter && saved.status) statusFilter.value = saved.status;
       if (liquidityFilter && saved.liquidity) liquidityFilter.value = saved.liquidity;
+      if (ambiguityFilter && saved.ambiguity) ambiguityFilter.value = saved.ambiguity;
       if (categoryFilter && saved.category) categoryFilter.value = saved.category;
       if (sortControl && saved.sort) sortControl.value = saved.sort;
     }

@@ -864,6 +864,11 @@ tr:last-child td {
   background: #3f1717;
 }
 
+.badge.warn {
+  color: #fde68a;
+  background: #3d2d0f;
+}
+
 @media (min-width: 920px) {
   .two-col {
     grid-template-columns: 1fr 1fr;
