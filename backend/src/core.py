@@ -10,11 +10,14 @@ Polling loop that:
 """
 
 import asyncio
+import contextlib
 import logging
 import os
 from dataclasses import asdict
 from datetime import datetime
 from typing import List, Optional
+
+import aiohttp
 
 from api.client import ManifoldClient
 from api.models import Market, StrategyResult, PlaceBetEvent, PortfolioEvent, ErrorEvent
@@ -23,6 +26,8 @@ from portfolio.manager import PortfolioManager
 from risk.kelly import RiskManager, create_risk_manager_from_profile
 from logger.csv_logger import CSVLogger
 from logger.data_uploader import DataUploader
+from execution.cpmm import build_state_from_market, simulate_cpmm_execution
+from analysis.arb_scanner import scan_linked_market_spreads
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +66,17 @@ class Core:
         self.cycle_count = 0
         self.bets_placed = 0
         self._cycle_bets_taken = 0
+        self._cycle_keys = set()
         self._cycle_bet_lock = asyncio.Lock()
         self.paper_trading = True
+        self.arb_signals_count = 0
+
+        self.max_category_exposure_ratio = float(os.getenv("MAX_CATEGORY_EXPOSURE_RATIO", "0.15"))
+        self.estimated_fee_rate = float(os.getenv("ESTIMATED_FEE_RATE", "0.02"))
+        self.slip_cap = float(os.getenv("SLIP_CAP", "0.02"))
+
+        self._wake_event = asyncio.Event()
+        self._ws_task: Optional[asyncio.Task] = None
     
     async def run(
         self,
@@ -87,6 +101,7 @@ class Core:
         logger.info("=" * 60)
 
         self.paper_trading = paper_trading
+        self._ws_task = asyncio.create_task(self._ws_listener())
         
         await self.portfolio_snapshot()  # Initial snapshot
         
@@ -94,6 +109,7 @@ class Core:
             try:
                 self.cycle_count += 1
                 self._cycle_bets_taken = 0
+                self._cycle_keys = set()
                 cycle_start = datetime.now()
                 
                 # Log cycle start
@@ -121,6 +137,7 @@ class Core:
                 
                 # Evaluate strategies on all markets
                 cycle_bets = await self.evaluate_markets(markets, paper_trading)
+                self._run_arb_scan(markets)
                 
                 # Log cycle summary
                 cycle_time = (datetime.now() - cycle_start).total_seconds()
@@ -140,7 +157,12 @@ class Core:
                 
                 # Wait before next cycle
                 logger.info(f"Sleeping {poll_interval}s until next cycle...")
-                await asyncio.sleep(poll_interval)
+                try:
+                    await asyncio.wait_for(self._wake_event.wait(), timeout=poll_interval)
+                    self._wake_event.clear()
+                    logger.info("Fast trigger event received; running next cycle immediately")
+                except asyncio.TimeoutError:
+                    pass
             
             except KeyboardInterrupt:
                 logger.info("Bot stopped by user (Ctrl+C)")
@@ -162,6 +184,68 @@ class Core:
                 
                 # Continue after error
                 await asyncio.sleep(poll_interval)
+
+        if self._ws_task:
+            self._ws_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._ws_task
+
+    def _run_arb_scan(self, markets: List[Market]):
+        """Phase-2 baseline arbitrage scan on linked binary markets."""
+        signals = scan_linked_market_spreads(markets, min_prob_spread=0.15)
+        self.arb_signals_count = len(signals)
+        if signals:
+            top = signals[0]
+            logger.info(
+                "Arb scan: %s signals. Top spread %.1f%% between %s and %s",
+                len(signals),
+                top.spread * 100,
+                top.market_a,
+                top.market_b,
+            )
+
+    async def _ws_listener(self):
+        """Websocket listener to trigger fast cycles on high-signal public events."""
+        ws_url = os.getenv("MANIFOLD_WS_URL", "wss://api.manifold.markets/ws")
+        while True:
+            try:
+                session = await self.client._ensure_session()
+                async with session.ws_connect(ws_url, heartbeat=30) as ws:
+                    await ws.send_json(
+                        {
+                            "type": "subscribe",
+                            "txid": 1,
+                            "topics": ["global/new-bet", "global/updated-contract"],
+                        }
+                    )
+                    async for msg in ws:
+                        if msg.type != aiohttp.WSMsgType.TEXT:
+                            continue
+                        try:
+                            payload = msg.json()
+                        except Exception:
+                            continue
+                        if payload.get("type") == "broadcast":
+                            self._wake_event.set()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.warning("Websocket listener error: %s", exc)
+                await asyncio.sleep(5)
+
+    def _extract_category(self, market: Market) -> str:
+        raw = market.raw_data or {}
+        slugs = raw.get("groupSlugs")
+        if isinstance(slugs, list) and slugs:
+            return str(slugs[0])
+        q = (market.question or "").lower()
+        if "election" in q or "president" in q or "senate" in q:
+            return "politics"
+        if "match" in q or "game" in q or "vs" in q or "tournament" in q:
+            return "sports"
+        if "stock" in q or "bitcoin" in q or "price" in q:
+            return "finance"
+        return "general"
     
     async def evaluate_markets(self, markets: List[Market], paper_trading: bool = True) -> int:
         """
@@ -176,8 +260,6 @@ class Core:
         """
         
         bets_placed_this_cycle = 0
-        all_proposals = []
-        
         # Evaluate all strategies concurrently on all markets
         tasks = [
             self.evaluate_and_execute(market, strategy, paper_trading)
@@ -249,12 +331,28 @@ class Core:
                 return 0
             
             proposed = result.proposed_bets[0]
+            cycle_key = f"{market.id}:{proposed.outcome}:{strategy.name}"
+            if cycle_key in self._cycle_keys:
+                return 0
+            category = self._extract_category(market)
+
+            # Slippage-aware pre-trade estimate.
+            cpmm_state = build_state_from_market(market)
+            exec_estimate = simulate_cpmm_execution(
+                cpmm_state,
+                proposed.outcome,
+                amount=float(proposed.size),
+                fee_rate=self.estimated_fee_rate,
+            )
+            slippage_penalty = min(self.slip_cap, exec_estimate.slippage)
             
             # Apply Kelly sizing
             kelly_size = self.risk_mgr.calculate_position_size(
                 market.get_answer_probability(proposed.outcome),
                 proposed.confidence,
-                current_invested=int(self.portfolio.get_total_invested())
+                current_invested=int(self.portfolio.get_total_invested()),
+                confidence=proposed.confidence,
+                slippage_penalty=slippage_penalty,
             )
             
             if kelly_size == 0:
@@ -265,6 +363,18 @@ class Core:
             final_size = min(kelly_size, proposed.size)
             
             if final_size < 1:
+                return 0
+
+            if not self.portfolio.can_add_category_exposure(
+                category=category,
+                additional_notional=float(final_size),
+                max_ratio=self.max_category_exposure_ratio,
+            ):
+                logger.info(
+                    "Skipping %s due to category exposure cap (%s)",
+                    market.id,
+                    category,
+                )
                 return 0
             
             # Execute bet
@@ -277,6 +387,9 @@ class Core:
                         )
                         return 0
                     self._cycle_bets_taken += 1
+                    self._cycle_keys.add(cycle_key)
+            else:
+                self._cycle_keys.add(cycle_key)
 
             logger.info(
                 f"Executing bet: {strategy.name} on {market.id} "
@@ -287,6 +400,22 @@ class Core:
                 # Simulate bet execution
                 logger.debug(f"[PAPER] Would place {final_size}m on {proposed.outcome}")
                 actual_cost = final_size  # Simplified
+                estimated = simulate_cpmm_execution(
+                    cpmm_state,
+                    proposed.outcome,
+                    amount=float(final_size),
+                    fee_rate=self.estimated_fee_rate,
+                )
+                self.portfolio.add_position(
+                    market.id,
+                    market.question,
+                    proposed.outcome,
+                    estimated.shares,
+                    estimated.avg_price,
+                    category=category,
+                    fee_paid=(final_size * self.estimated_fee_rate),
+                    slippage_paid=estimated.slippage,
+                )
             else:
                 # Real bet
                 bet = await self.client.place_bet(
@@ -305,7 +434,10 @@ class Core:
                     market.question,
                     proposed.outcome,
                     bet.shares,
-                    bet.execution_price
+                    bet.execution_price,
+                    category=category,
+                    fee_paid=(final_size * self.estimated_fee_rate),
+                    slippage_paid=slippage_penalty,
                 )
                 
                 actual_cost = float(bet.amount_bet)
@@ -351,7 +483,11 @@ class Core:
             balance=metrics.balance,
             invested=metrics.invested,
             p_and_l=metrics.profit,
-            win_rate=self.portfolio.get_win_rate()
+            win_rate=self.portfolio.get_win_rate(),
+            fees_paid=self.portfolio.total_fees_paid,
+            slippage_paid=self.portfolio.total_slippage_paid,
+            trades_count=self.portfolio.trades_count,
+            arb_signals_count=self.arb_signals_count,
         )
         
         self.csv_logger.log_portfolio(event)
@@ -450,6 +586,7 @@ async def main(
         "min_liquidity": float(os.getenv("MIN_MARKET_LIQUIDITY", "50")),
         "min_volume": float(os.getenv("MARKET_VOLUME_THRESHOLD", "250")),
         "min_age_hours": int(os.getenv("MIN_MARKET_AGE_HOURS", "0")),
+        "max_resolution_risk": int(os.getenv("MAX_RESOLUTION_RISK", "2")),
         "underpriced_threshold": float(os.getenv("UNDERPRICED_THRESHOLD", "0.40")),
         "confidence": float(os.getenv("PREDICTION_THRESHOLD", "0.58")),
         "default_size": int(os.getenv("DEFAULT_BET_SIZE", "75")),

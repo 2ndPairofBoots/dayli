@@ -25,7 +25,17 @@ class CSVLogger:
         "errors": ["timestamp", "error_type", "message", "traceback"],
         "strategies": ["timestamp", "strategy", "market_id", "market_question", 
                        "decision", "confidence", "latency_ms"],
-        "portfolio": ["timestamp", "balance", "invested", "pnl", "win_rate"],
+        "portfolio": [
+            "timestamp",
+            "balance",
+            "invested",
+            "pnl",
+            "win_rate",
+            "fees_paid",
+            "slippage_paid",
+            "trades_count",
+            "arb_signals_count",
+        ],
     }
     
     def __init__(self, log_dir: str = "logs"):

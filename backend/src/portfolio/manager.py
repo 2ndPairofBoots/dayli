@@ -25,6 +25,10 @@ class PortfolioManager:
         self.positions: Dict[str, Position] = {}  # {market_id: Position}
         self.total_invested = 0.0
         self.total_pnl = 0.0
+        self.category_exposure: Dict[str, float] = {}
+        self.total_fees_paid = 0.0
+        self.total_slippage_paid = 0.0
+        self.trades_count = 0
     
     def add_position(
         self,
@@ -32,7 +36,10 @@ class PortfolioManager:
         market_question: str,
         outcome: str,
         shares: float,
-        price: float  # Cost per share
+        price: float,  # Cost per share
+        category: str = "uncategorized",
+        fee_paid: float = 0.0,
+        slippage_paid: float = 0.0,
     ) -> Position:
         """
         Add/update position in portfolio.
@@ -68,8 +75,32 @@ class PortfolioManager:
             self.positions[market_id] = pos
         
         logger.info(f"Position updated: {market_id} {outcome} {pos.shares}sh @ {pos.avg_cost:.3f}")
+
+        notional = max(0.0, shares * price)
+        self.category_exposure[category] = self.category_exposure.get(category, 0.0) + notional
+        self.total_fees_paid += max(0.0, fee_paid)
+        self.total_slippage_paid += max(0.0, slippage_paid)
+        self.trades_count += 1
         
         return pos
+
+    def get_category_exposure_ratio(self, category: str) -> float:
+        """Return category notional exposure as ratio of account balance."""
+        if self.balance <= 0:
+            return 0.0
+        return self.category_exposure.get(category, 0.0) / self.balance
+
+    def can_add_category_exposure(
+        self,
+        category: str,
+        additional_notional: float,
+        max_ratio: float,
+    ) -> bool:
+        """Check if adding notional would breach category concentration cap."""
+        if self.balance <= 0:
+            return False
+        current = self.category_exposure.get(category, 0.0)
+        return (current + max(0.0, additional_notional)) <= (self.balance * max_ratio)
     
     def update_market_price(self, market_id: str, current_price: float):
         """
@@ -187,6 +218,10 @@ class PortfolioManager:
             "total_invested": self.get_total_invested(),
             "total_pnl": self.total_pnl,
             "total_pnl_with_unrealized": self.get_total_pnl(),
+            "category_exposure": self.category_exposure,
+            "total_fees_paid": self.total_fees_paid,
+            "total_slippage_paid": self.total_slippage_paid,
+            "trades_count": self.trades_count,
         }
     
     def __repr__(self) -> str:

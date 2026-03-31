@@ -7,23 +7,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar shell">
     <div class="brand-row">
-      <div>
-        <p class="eyebrow">Dayli Operations</p>
-        <h1>Website Console</h1>
+      <div class="brand-content">
+        <div class="logo-wrapper">
+          <i class="fas fa-chart-line logo-icon"></i>
+        </div>
+        <div>
+          <p class="eyebrow">Dayli Operations</p>
+          <h1>Trading Console</h1>
+        </div>
       </div>
     </div>
     <div class="account-area" id="accountArea">
       <button class="account-chip" id="accountChip" type="button" aria-label="Toggle account panel" aria-expanded="true" aria-controls="accountPanel">
-        <div class="avatar">A</div>
+        <div class="avatar" id="accountAvatar">
+          <i class="fas fa-user"></i>
+        </div>
         <div>
           <p class="account-name" id="accountName">No account</p>
-          <p class="account-sub" id="accountSub">API input is below</p>
+          <p class="account-sub" id="accountSub">Click to connect</p>
         </div>
+        <i class="fas fa-chevron-down dropdown-icon"></i>
       </button>
 
       <section class="card account-panel" id="accountPanel">
@@ -51,47 +60,77 @@
   <main class="layout shell">
     <section class="toolbar card">
       <div>
-        <h2>Control</h2>
+        <h2><i class="fas fa-sliders-h"></i> Control Panel</h2>
         <p class="muted">Refresh account details and live Manifold API data.</p>
       </div>
       <div class="topbar-actions">
-        <button id="refreshBtn" class="btn">Refresh</button>
-        <p id="lastUpdated" class="muted">Last updated: -</p>
+        <button id="refreshBtn" class="btn btn-primary">
+          <i class="fas fa-sync-alt"></i> Refresh Data
+        </button>
+        <p id="lastUpdated" class="muted">
+          <i class="far fa-clock"></i> Last updated: -
+        </p>
       </div>
     </section>
 
     <section class="card metrics" id="dashboardSection">
-      <h2>Portfolio Snapshot</h2>
-      <div class="metrics-grid">
-        <div class="metric">
-          <p class="metric-label">Balance</p>
-          <p id="balanceValue" class="metric-value">-</p>
+      <div class="section-header">
+        <p class="eyebrow"><i class="fas fa-wallet"></i> Portfolio Overview</p>
+        <span class="live-indicator">
+          <span class="pulse-dot"></span> Live
+        </span>
+      </div>
+      <div class="networth-row">
+        <div class="mana-dot">
+          <i class="fas fa-coins"></i>
         </div>
-        <div class="metric">
-          <p class="metric-label">Invested</p>
-          <p id="investedValue" class="metric-value">-</p>
+        <p class="networth-value" id="netWorthValue">-</p>
+        <p class="networth-label">net worth</p>
+      </div>
+
+      <div class="metrics-grid chips-grid">
+        <div class="metric chip">
+          <p class="metric-value" id="balanceValue">-</p>
+          <p class="metric-label">balance</p>
         </div>
-        <div class="metric">
-          <p class="metric-label">PnL</p>
-          <p id="pnlValue" class="metric-value">-</p>
+        <div class="metric chip">
+          <p class="metric-value" id="investedValue">-</p>
+          <p class="metric-label">invested</p>
         </div>
-        <div class="metric">
-          <p class="metric-label">Open Holdings</p>
-          <p id="openHoldingsValue" class="metric-value">-</p>
+        <div class="metric chip">
+          <p class="metric-value" id="pnlValue">-</p>
+          <p class="metric-label">profit</p>
+        </div>
+        <div class="metric chip">
+          <p class="metric-value" id="openHoldingsValue">-</p>
+          <p class="metric-label">open</p>
         </div>
       </div>
-      <h3 class="subhead">Net Worth Trend</h3>
+
       <div class="chart-box">
         <svg id="portfolioChart" viewBox="0 0 1000 240" preserveAspectRatio="none" aria-label="Portfolio net worth chart">
           <path id="chartFill" class="chart-fill" d=""></path>
           <path id="chartLine" class="chart-line" d=""></path>
+          <circle id="chartHoverDot" class="chart-hover-dot" cx="0" cy="0" r="4"></circle>
         </svg>
+        <div id="chartTooltip" class="chart-tooltip" role="status" aria-live="polite"></div>
       </div>
+
+      <div class="range-row" role="group" aria-label="Chart range">
+        <button class="range-btn" id="range1d" type="button">1D</button>
+        <button class="range-btn active" id="range1w" type="button">1W</button>
+        <button class="range-btn" id="range1m" type="button">1M</button>
+        <button class="range-btn" id="rangeAll" type="button">ALL</button>
+      </div>
+
       <p id="statusText" class="status">Status: loading...</p>
     </section>
 
     <section class="card">
-      <h2>Current Holdings</h2>
+      <div class="section-header-inline">
+        <h2><i class="fas fa-briefcase"></i> Current Holdings</h2>
+        <span class="badge-count" id="holdingsCount">0 positions</span>
+      </div>
       <p id="holdingsStatusText" class="status">Holdings: waiting for connection...</p>
       <div class="table-wrap">
         <table>
@@ -113,7 +152,7 @@
     <section class="card" id="marketSection">
       <div class="toolbar-inline">
         <div>
-          <h2>Manifold Market Datapoints</h2>
+          <h2><i class="fas fa-chart-bar"></i> Market Explorer</h2>
           <p class="muted">Live market feed with full raw payload inspector.</p>
         </div>
         <div class="inline-actions">
@@ -146,7 +185,7 @@
     </section>
 
     <section class="card">
-      <h2>Recent Bets</h2>
+      <h2><i class="fas fa-history"></i> Recent Bets</h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -166,7 +205,7 @@
 
     <section class="card two-col">
       <div>
-        <h2>Recent Errors</h2>
+        <h2><i class="fas fa-exclamation-triangle"></i> Recent Errors</h2>
         <div class="table-wrap small">
           <table>
             <thead>
@@ -181,7 +220,7 @@
         </div>
       </div>
       <div>
-        <h2>Recent Strategy Decisions</h2>
+        <h2><i class="fas fa-brain"></i> Strategy Insights</h2>
         <div class="table-wrap small">
           <table>
             <thead>

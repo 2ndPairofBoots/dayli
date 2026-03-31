@@ -13,6 +13,18 @@ const MANIFOLD_BASE_URL = "https://api.manifold.markets";
 
 let lastMarkets = [];
 let lastHoldings = [];
+let lastPortfolioRows = [];
+let chartRange = "1w";
+const chartRangeMs = {
+  "1d": 24 * 60 * 60 * 1000,
+  "1w": 7 * 24 * 60 * 60 * 1000,
+  "1m": 30 * 24 * 60 * 60 * 1000,
+};
+const snapshotMetrics = {
+  balance: null,
+  invested: null,
+};
+let chartPlotPoints = [];
 
 function setTrendClass(id, value) {
   const el = qs(id);
@@ -68,24 +80,32 @@ function setConnectionStatus(text, isError = false) {
 function updateAccountHeader(account) {
   const name = qs("accountName");
   const sub = qs("accountSub");
-  if (!name || !sub) return;
+  const avatar = qs("accountAvatar");
+  if (!name || !sub || !avatar) return;
 
   if (!account) {
     name.textContent = "No account";
-    sub.textContent = "API input is below";
+    sub.textContent = "Click to connect";
+    avatar.innerHTML = '<i class="fas fa-user"></i>';
     return;
   }
 
   name.textContent = account.displayName;
   sub.textContent = "Manifold account connected";
+  const initial = account.displayName.charAt(0).toUpperCase();
+  avatar.textContent = initial;
 }
 
 function clearDataViews() {
   setText("balanceValue", "-");
   setText("investedValue", "-");
   setText("pnlValue", "-");
+  setText("netWorthValue", "-");
   setText("openHoldingsValue", "-");
   setTrendClass("pnlValue", 0);
+  snapshotMetrics.balance = null;
+  snapshotMetrics.invested = null;
+  lastPortfolioRows = [];
   setText("lastUpdated", "Last updated: -");
   renderRows("betsTable", [], () => "");
   renderRows("errorsTable", [], () => "");
@@ -94,7 +114,18 @@ function clearDataViews() {
   renderRows("marketsTable", [], () => "");
   setText("holdingsStatusText", "Holdings: connect API to load data");
   drawPortfolioChart([]);
+  hideChartTooltip();
   showMarketRaw(-1);
+}
+
+function updateNetWorth() {
+  const balance = Number.isFinite(snapshotMetrics.balance) ? snapshotMetrics.balance : null;
+  const invested = Number.isFinite(snapshotMetrics.invested) ? snapshotMetrics.invested : null;
+  if (balance == null && invested == null) {
+    setText("netWorthValue", "-");
+    return;
+  }
+  setText("netWorthValue", formatMana((balance || 0) + (invested || 0)));
 }
 
 async function loadConnectedSnapshot(apiKey) {
@@ -111,7 +142,9 @@ async function loadConnectedSnapshot(apiKey) {
   const me = await response.json();
   const bal = Number(me.balance ?? 0);
   if (!Number.isNaN(bal) && bal > 0) {
+    snapshotMetrics.balance = bal;
     setText("balanceValue", formatMana(bal));
+    updateNetWorth();
   }
   return me;
 }
@@ -371,15 +404,22 @@ async function loadCurrentHoldings(apiKey) {
     const invested = lastHoldings.reduce((sum, h) => sum + parseNum(h.shares) * parseNum(h.avgPrice), 0);
     const currentValue = lastHoldings.reduce((sum, h) => sum + parseNum(h.value), 0);
     const pnl = currentValue - invested;
+    snapshotMetrics.invested = invested;
     setText("investedValue", formatMana(invested));
     setText("pnlValue", formatMana(pnl));
     setTrendClass("pnlValue", pnl);
+    updateNetWorth();
 
     if (status) status.textContent = `Holdings: loaded ${lastHoldings.length} open trades.`;
   } catch (error) {
     lastHoldings = [];
     renderRows("holdingsTable", [], () => "");
     setText("openHoldingsValue", "0");
+    snapshotMetrics.invested = null;
+    setText("investedValue", "-");
+    setText("pnlValue", "-");
+    setTrendClass("pnlValue", 0);
+    updateNetWorth();
     if (status) status.textContent = `Holdings: failed (${error.message})`;
   }
 }
@@ -391,12 +431,131 @@ function buildLinePath(points) {
     .join(" ");
 }
 
+function hideChartTooltip() {
+  const tip = qs("chartTooltip");
+  const dot = qs("chartHoverDot");
+  if (tip) tip.style.display = "none";
+  if (dot) dot.style.display = "none";
+}
+
+function showChartTooltip(point, event) {
+  const chart = qs("portfolioChart");
+  const box = chart?.parentElement;
+  const tip = qs("chartTooltip");
+  const dot = qs("chartHoverDot");
+  if (!chart || !box || !tip || !dot || !point) return;
+
+  dot.setAttribute("cx", point.x.toFixed(2));
+  dot.setAttribute("cy", point.y.toFixed(2));
+  dot.style.display = "block";
+
+  const dateLabel = point.ts ? new Date(point.ts).toLocaleString() : "time: n/a";
+  tip.innerHTML = `net worth: ${formatMana(point.value)}<br>${escapeHtml(dateLabel)}`;
+  tip.style.display = "block";
+
+  const rect = box.getBoundingClientRect();
+  const localX = event.clientX - rect.left;
+  const localY = event.clientY - rect.top;
+  const x = Math.min(Math.max(localX + 12, 10), rect.width - 180);
+  const y = Math.min(Math.max(localY - 46, 10), rect.height - 42);
+  tip.style.left = `${x}px`;
+  tip.style.top = `${y}px`;
+}
+
+function initChartHover() {
+  const chart = qs("portfolioChart");
+  if (!chart) return;
+
+  chart.addEventListener("mouseleave", () => {
+    hideChartTooltip();
+  });
+
+  chart.addEventListener("mousemove", (event) => {
+    if (!chartPlotPoints.length) {
+      hideChartTooltip();
+      return;
+    }
+
+    const rect = chart.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / Math.max(1, rect.width);
+    const hoverX = Math.min(1000, Math.max(0, ratio * 1000));
+
+    let nearest = chartPlotPoints[0];
+    let bestDist = Math.abs(nearest.x - hoverX);
+    for (let i = 1; i < chartPlotPoints.length; i++) {
+      const dist = Math.abs(chartPlotPoints[i].x - hoverX);
+      if (dist < bestDist) {
+        bestDist = dist;
+        nearest = chartPlotPoints[i];
+      }
+    }
+
+    showChartTooltip(nearest, event);
+  });
+}
+
+function parsePortfolioTimestamp(row) {
+  const raw =
+    row?.timestamp ??
+    row?.created_time ??
+    row?.createdTime ??
+    row?.time ??
+    row?.date ??
+    "";
+  if (!raw) return null;
+  const n = Number(raw);
+  if (!Number.isNaN(n) && n > 0) {
+    return n > 10_000_000_000 ? n : n * 1000;
+  }
+  const t = Date.parse(String(raw));
+  return Number.isNaN(t) ? null : t;
+}
+
+function filterRowsByRange(rows) {
+  if (chartRange === "all") return rows;
+  const windowMs = chartRangeMs[chartRange];
+  if (!windowMs) return rows;
+
+  const now = Date.now();
+  const cutoff = now - windowMs;
+  const filtered = rows.filter((r) => {
+    const ts = parsePortfolioTimestamp(r);
+    return ts != null && ts >= cutoff;
+  });
+
+  if (filtered.length >= 2) return filtered;
+  return rows.slice(-40);
+}
+
+function setChartRange(nextRange) {
+  chartRange = nextRange;
+  ["1d", "1w", "1m", "all"].forEach((range) => {
+    const btn = qs(`range${range === "all" ? "All" : range}`);
+    if (!btn) return;
+    btn.classList.toggle("active", range === chartRange);
+  });
+  drawPortfolioChart(lastPortfolioRows);
+}
+
+function initRangeControls() {
+  const mapping = {
+    range1d: "1d",
+    range1w: "1w",
+    range1m: "1m",
+    rangeAll: "all",
+  };
+  Object.entries(mapping).forEach(([id, range]) => {
+    qs(id)?.addEventListener("click", () => setChartRange(range));
+  });
+  setChartRange(chartRange);
+}
+
 function drawPortfolioChart(portfolioRows) {
   const line = qs("chartLine");
   const fill = qs("chartFill");
   if (!line || !fill) return;
 
-  const rows = portfolioRows.slice(-120);
+  const rows = filterRowsByRange((portfolioRows || []).slice(-400));
   const series = rows
     .map((r) => {
       const balance = parseNum(r.balance);
@@ -406,8 +565,10 @@ function drawPortfolioChart(portfolioRows) {
     .filter((v) => !Number.isNaN(v));
 
   if (series.length < 2) {
+    chartPlotPoints = [];
     line.setAttribute("d", "");
     fill.setAttribute("d", "");
+    hideChartTooltip();
     return;
   }
 
@@ -422,8 +583,10 @@ function drawPortfolioChart(portfolioRows) {
   const points = series.map((v, i) => {
     const x = padX + (i * (width - padX * 2)) / (series.length - 1);
     const y = height - padY - ((v - min) / span) * (height - padY * 2);
-    return { x, y };
+    const ts = parsePortfolioTimestamp(rows[i]);
+    return { x, y, value: v, ts };
   });
+  chartPlotPoints = points;
 
   const linePath = buildLinePath(points);
   const fillPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${
@@ -693,17 +856,24 @@ async function loadDashboard() {
       safeRead(paths.portfolio),
       safeRead(paths.strategy),
     ]);
+    lastPortfolioRows = portfolio;
 
     const latestPortfolio = portfolio[portfolio.length - 1] || {};
     const connected = !!loadSavedAccount()?.apiKey;
 
     if (!connected) {
       if (latestPortfolio.balance != null && latestPortfolio.balance !== "") {
-        setText("balanceValue", formatMana(latestPortfolio.balance));
+        const balance = parseNum(latestPortfolio.balance);
+        snapshotMetrics.balance = balance;
+        setText("balanceValue", formatMana(balance));
       }
-      setText("investedValue", formatMana(latestPortfolio.invested));
-      setText("pnlValue", formatMana(latestPortfolio.pnl));
-      setTrendClass("pnlValue", parseNum(latestPortfolio.pnl));
+      const invested = parseNum(latestPortfolio.invested);
+      const pnl = parseNum(latestPortfolio.pnl);
+      snapshotMetrics.invested = invested;
+      setText("investedValue", formatMana(invested));
+      setText("pnlValue", formatMana(pnl));
+      setTrendClass("pnlValue", pnl);
+      updateNetWorth();
     }
 
     setText("accountName", inferAccountName([]));
@@ -784,6 +954,8 @@ qs("refreshMarketsBtn")?.addEventListener("click", async () => {
 });
 
 initAccountFlow();
+initRangeControls();
+initChartHover();
 
 const savedAccount = loadSavedAccount();
 if (savedAccount?.apiKey) {

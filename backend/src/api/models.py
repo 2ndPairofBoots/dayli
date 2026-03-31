@@ -410,6 +410,10 @@ class PortfolioEvent:
     invested: float
     p_and_l: float
     win_rate: float
+    fees_paid: float = 0.0
+    slippage_paid: float = 0.0
+    trades_count: int = 0
+    arb_signals_count: int = 0
     
     def to_csv(self) -> list:
         """Convert to CSV row."""
@@ -418,5 +422,9 @@ class PortfolioEvent:
             f"{self.balance:.2f}",
             f"{self.invested:.2f}",
             f"{self.p_and_l:.2f}",
-            f"{self.win_rate:.3f}"
+            f"{self.win_rate:.3f}",
+            f"{self.fees_paid:.2f}",
+            f"{self.slippage_paid:.4f}",
+            str(self.trades_count),
+            str(self.arb_signals_count),
         ]

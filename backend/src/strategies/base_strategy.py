@@ -11,6 +11,7 @@ from typing import List, Optional
 import logging
 import time
 from datetime import datetime
+import re
 
 from api.models import Market, ProposedBet, StrategyResult
 from api.client import ManifoldClient
@@ -114,6 +115,55 @@ class ClosedQualifier(Qualifier):
         return self._failed_reason
 
 
+class ResolutionRiskQualifier(Qualifier):
+    """Reject markets with high ambiguity / likely N/A risk signals."""
+
+    HIGH_RISK_PHRASES = [
+        r"my\s+judgment",
+        r"at\s+my\s+discretion",
+        r"i\s+will\s+decide",
+        r"subjective",
+        r"if\s+i\s+feel",
+        r"probably",
+        r"maybe",
+        r"tbd",
+        r"unclear",
+    ]
+
+    def __init__(self, max_risk_score: int = 2):
+        self.max_risk_score = max_risk_score
+        self._failed_reason = ""
+
+    async def evaluate(self, market: Market, client: ManifoldClient) -> bool:
+        raw = market.raw_data or {}
+        text = " ".join(
+            [
+                str(raw.get("question", market.question or "")),
+                str(raw.get("textDescription", "")),
+                str(raw.get("description", "")),
+            ]
+        ).lower()
+
+        risk_score = 0
+        for pattern in self.HIGH_RISK_PHRASES:
+            if re.search(pattern, text):
+                risk_score += 1
+
+        if raw.get("isResolved") and raw.get("resolution") == "CANCEL":
+            risk_score += 2
+
+        if risk_score > self.max_risk_score:
+            self._failed_reason = (
+                f"Resolution risk score {risk_score} > {self.max_risk_score}"
+            )
+            return False
+
+        return True
+
+    def reason(self) -> str:
+        return self._failed_reason
+
+
 class BaseTradingStrategy(ABC):
     """Base class for all trading strategies.
     
@@ -195,11 +245,13 @@ class BaseTradingStrategy(ABC):
         min_liquidity = float(self.config.get("min_liquidity", 100.0))
         min_volume = float(self.config.get("min_volume", 500.0))
         min_age_hours = int(self.config.get("min_age_hours", 0))
+        max_resolution_risk = int(self.config.get("max_resolution_risk", 2))
         return [
             ClosedQualifier(),
             LiquidityQualifier(min_liquidity=min_liquidity),
             VolumeQualifier(min_volume=min_volume),
             AgeQualifier(min_age_hours=min_age_hours),
+            ResolutionRiskQualifier(max_risk_score=max_resolution_risk),
         ]
     
     def custom_qualifiers(self) -> List[Qualifier]:

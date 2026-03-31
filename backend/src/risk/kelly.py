@@ -90,6 +90,30 @@ def calculate_kelly_size(
     return size
 
 
+def calculate_kelly_fraction(
+    market_probability: float,
+    our_estimate: float,
+    confidence: float = 1.0,
+    slippage_penalty: float = 0.0,
+) -> float:
+    """Calculate raw Kelly fraction for binary prediction market exposure.
+
+    Uses odds implied by current quote, then applies confidence and slippage penalty.
+    """
+    q = max(1e-6, min(1 - 1e-6, float(market_probability)))
+    p = max(1e-6, min(1 - 1e-6, float(our_estimate)))
+
+    # Decimal net odds for YES share at price q: b = (1 - q) / q.
+    b = (1 - q) / q
+    raw = (b * p - (1 - p)) / b
+
+    conf = max(0.0, min(1.0, confidence))
+    adjusted = raw * conf
+    adjusted = adjusted - max(0.0, slippage_penalty)
+
+    return max(0.0, adjusted)
+
+
 class RiskManager:
     """Manage risk limits and position constraints."""
     
@@ -127,7 +151,9 @@ class RiskManager:
         self,
         market_probability: float,
         our_estimate: float,
-        current_invested: int = 0
+        current_invested: int = 0,
+        confidence: float = 1.0,
+        slippage_penalty: float = 0.0,
     ) -> int:
         """
         Calculate position size respecting all risk limits.
@@ -141,14 +167,14 @@ class RiskManager:
             Safe position size in mana
         """
         
-        # 1. Calculate Kelly size
-        kelly_size = calculate_kelly_size(
-            self.balance,
+        # 1. Calculate Kelly fraction then convert to position size.
+        kelly_fraction_raw = calculate_kelly_fraction(
             market_probability,
             our_estimate,
-            self.kelly_fraction,
-            max_size=None
+            confidence=confidence,
+            slippage_penalty=slippage_penalty,
         )
+        kelly_size = int(self.balance * (kelly_fraction_raw * self.kelly_fraction))
         
         if kelly_size == 0:
             return 0
@@ -164,6 +190,17 @@ class RiskManager:
             return 0
         
         size = min(size, room_in_portfolio)
+
+        logger.debug(
+            "Kelly sizing: q=%.3f estimate=%.3f conf=%.2f slip=%.4f raw=%.4f frac=%.4f size=%s",
+            market_probability,
+            our_estimate,
+            confidence,
+            slippage_penalty,
+            kelly_fraction_raw,
+            self.kelly_fraction,
+            size,
+        )
         
         return max(1, size)  # At least 1 mana
     
