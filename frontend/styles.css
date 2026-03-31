@@ -404,6 +404,14 @@ h2 i {
   fill: rgba(79, 209, 178, 0.22);
 }
 
+.chart-crosshair {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  display: none;
+  pointer-events: none;
+}
+
 .chart-hover-dot {
   fill: #8ef3dd;
   stroke: #0f151e;
@@ -455,6 +463,10 @@ h2 i {
   font-weight: 600;
 }
 
+.chart-legend-item .neutral {
+  color: #cbd5e1;
+}
+
 .chart-legend-item .gain {
   color: #4fd1b2;
 }
@@ -500,6 +512,10 @@ h2 i {
 
 .perf-pill strong.loss {
   color: #f87171;
+}
+
+.perf-pill strong.neutral {
+  color: #cbd5e1;
 }
 
 .swatch {

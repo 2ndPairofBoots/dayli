@@ -463,8 +463,10 @@ function buildLinePath(points) {
 function hideChartTooltip() {
   const tip = qs("chartTooltip");
   const dot = qs("chartHoverDot");
+  const crosshair = qs("chartCrosshair");
   if (tip) tip.style.display = "none";
   if (dot) dot.style.display = "none";
+  if (crosshair) crosshair.style.display = "none";
 }
 
 function setChartLegendValue(id, text, trendClass = "") {
@@ -497,7 +499,8 @@ function updatePerformancePill(id, nowValue, baseValue) {
   }
   const delta = nowValue - baseValue;
   const pct = (delta / baseValue) * 100;
-  setChartLegendValue(id, `${delta >= 0 ? "+" : ""}${fmtNum(pct, 2)}%`, delta >= 0 ? "gain" : "loss");
+  const trend = Math.abs(pct) < 0.05 ? "neutral" : delta >= 0 ? "gain" : "loss";
+  setChartLegendValue(id, `${delta >= 0 ? "+" : ""}${fmtNum(pct, 2)}%`, trend);
 }
 
 function showChartTooltip(point, event) {
@@ -505,18 +508,25 @@ function showChartTooltip(point, event) {
   const box = chart?.parentElement;
   const tip = qs("chartTooltip");
   const dot = qs("chartHoverDot");
+  const crosshair = qs("chartCrosshair");
   if (!chart || !box || !tip || !dot || !point) return;
 
   dot.setAttribute("cx", point.x.toFixed(2));
   dot.setAttribute("cy", point.y.toFixed(2));
   dot.style.display = "block";
+  if (crosshair) {
+    crosshair.setAttribute("x1", point.x.toFixed(2));
+    crosshair.setAttribute("x2", point.x.toFixed(2));
+    crosshair.style.display = "block";
+  }
 
   const dateLabel = point.ts ? new Date(point.ts).toLocaleString() : "time: n/a";
   const delta = Number.isFinite(point.delta) ? point.delta : 0;
   const deltaPct = Number.isFinite(point.deltaPct) ? point.deltaPct : 0;
+  const moveClass = Math.abs(deltaPct) < 0.02 ? "neutral" : delta >= 0 ? "gain" : "loss";
   tip.innerHTML = [
     `net: <strong>${formatMana(point.value)}</strong>`,
-    `move: <strong class="${delta >= 0 ? "gain" : "loss"}">${formatDelta(delta, deltaPct)}</strong>`,
+    `move: <strong class="${moveClass}">${formatDelta(delta, deltaPct)}</strong>`,
     `balance: ${formatMana(point.balance)}`,
     `invested: ${formatMana(point.invested)}`,
     escapeHtml(dateLabel),
@@ -734,12 +744,14 @@ function drawPortfolioChart(portfolioRows) {
   setChartLegendValue("chartLegendNet", formatMana(last.value));
   setChartLegendValue("chartLegendBalance", formatMana(last.balance));
   setChartLegendValue("chartLegendInvested", formatMana(last.invested));
+  const changeTrend = Math.abs(changePct) < 0.05 ? "neutral" : change >= 0 ? "gain" : "loss";
   setChartLegendValue(
     "chartLegendChange",
     `${change >= 0 ? "+" : ""}${formatMana(change)} (${changePct >= 0 ? "+" : ""}${fmtNum(changePct, 2)}%)`,
-    change >= 0 ? "gain" : "loss"
+    changeTrend
   );
-  setChartLegendValue("chartLegendDrawdown", `${fmtNum(maxDrawdown, 2)}%`, maxDrawdown > 10 ? "loss" : "");
+  const ddTrend = maxDrawdown > 15 ? "loss" : maxDrawdown < 2 ? "gain" : "neutral";
+  setChartLegendValue("chartLegendDrawdown", `${fmtNum(maxDrawdown, 2)}%`, ddTrend);
   setChartLegendValue("chartLegendPoints", String(points.length));
 
   if (fullSeries.length >= 2) {
