@@ -1778,10 +1778,29 @@ function setActiveTab(tab) {
 }
 
 function initTabNavigation() {
+  const resolveTab = () => {
+    const hash = window.location.hash || "#/overview";
+    const tab = hash.replace("#/", "").trim();
+    const valid = ["overview", "markets", "trades", "intel"];
+    return valid.includes(tab) ? tab : "overview";
+  };
+
+  const applyFromHash = () => setActiveTab(resolveTab());
+
   document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+    btn.addEventListener("click", () => {
+      // Let hash route drive the state
+      setTimeout(applyFromHash, 0);
+    });
   });
-  setActiveTab("overview");
+
+  window.addEventListener("hashchange", applyFromHash);
+
+  if (!window.location.hash) {
+    window.location.hash = "#/overview";
+  } else {
+    applyFromHash();
+  }
 }
 
 qs("refreshBtn").addEventListener("click", async () => {

@@ -289,6 +289,10 @@ h2 i {
 }
 
 .tab-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--border);
   background: var(--card-soft);
   color: var(--text-secondary);
