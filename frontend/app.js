@@ -12,6 +12,7 @@ const ACCOUNT_STORAGE_KEY = "dayli_account";
 const MANIFOLD_BASE_URL = "https://api.manifold.markets";
 
 let lastMarkets = [];
+let filteredMarkets = [];
 let lastHoldings = [];
 let lastPortfolioRows = [];
 let chartRange = "1w";
@@ -25,6 +26,7 @@ const snapshotMetrics = {
   invested: null,
 };
 let chartPlotPoints = [];
+let searchDebounceTimer = null;
 
 function setTrendClass(id, value) {
   const el = qs(id);
@@ -390,13 +392,18 @@ async function loadCurrentHoldings(apiKey) {
     renderRows(
       "holdingsTable",
       lastHoldings,
-      (h) => `<tr>
+      (h, idx) => `<tr>
         <td>${escapeHtml(short(h.marketQuestion, 72))}</td>
         <td>${escapeHtml(h.outcome)}</td>
         <td>${formatMana(h.shares)}</td>
         <td>${formatMana(h.avgPrice)}</td>
         <td>${formatMana(h.value)}</td>
         <td class="${h.pnl >= 0 ? "gain" : "loss"}">${h.pnl >= 0 ? "+" : ""}${formatMana(h.pnl)}</td>
+        <td>
+          <button class="btn-quick-sell" data-holding-index="${idx}" onclick="openQuickSellPanel(${idx})">
+            <i class="fas fa-arrow-down"></i> Sell
+          </button>
+        </td>
       </tr>`
     );
 
@@ -770,9 +777,18 @@ function showMarketRaw(index) {
 
 function bindMarketRowClicks() {
   document.querySelectorAll(".market-row").forEach((row) => {
-    row.addEventListener("click", () => {
-      const idx = Number(row.dataset.index);
-      showMarketRaw(idx);
+    row.addEventListener("click", (event) => {
+      // Check if clicked on trade button
+      if (event.target.closest('.btn-trade')) {
+        const idx = parseInt(row.dataset.index);
+        if (idx >= 0 && idx < filteredMarkets.length) {
+          openTradePanel(filteredMarkets[idx]);
+        }
+      } else {
+        // Original behavior - show raw JSON
+        const idx = Number(row.dataset.index);
+        showMarketRaw(idx);
+      }
     });
   });
 }
@@ -798,31 +814,180 @@ async function loadMarketDatapoints(limitOverride) {
 
     const markets = await response.json();
     lastMarkets = Array.isArray(markets) ? markets : [];
+    filteredMarkets = lastMarkets;
 
-    renderRows(
-      "marketsTable",
-      lastMarkets,
-      (m, idx) => `<tr class="market-row" data-index="${idx}">
-        <td>${escapeHtml(short(m.id, 14))}</td>
-        <td>${escapeHtml(short(m.question, 86))}</td>
-        <td>${fmtNum(parseMarketProbability(m), 3)}</td>
-        <td>${fmtNum(parseMarketLiquidity(m), 0)}</td>
-        <td>${fmtNum(parseMarketVolume24h(m), 0)}</td>
-        <td>${escapeHtml(m.outcomeType || "-")}</td>
-        <td>${m.isResolved ? "yes" : "no"}</td>
-      </tr>`
-    );
-
-    showMarketRaw(lastMarkets.length ? 0 : -1);
-    bindMarketRowClicks();
+    applyMarketFiltersAndSort();
+    renderBreakingNews();
 
     if (status) {
-      status.textContent = `Markets: loaded ${lastMarkets.length} datapoints-rich records from Manifold.`;
+      status.textContent = `Markets: loaded ${lastMarkets.length} markets from Manifold.`;
     }
   } catch (error) {
     if (status) status.textContent = `Markets: failed (${error.message})`;
     renderRows("marketsTable", [], () => "");
     showMarketRaw(-1);
+  }
+}
+
+// Market filtering, search, and sorting functions
+function applyMarketFiltersAndSort() {
+  const searchTerm = qs("marketSearchInput")?.value?.toLowerCase() || "";
+  const statusFilter = qs("statusFilter")?.value || "all";
+  const liquidityFilter = qs("liquidityFilter")?.value || "all";
+  const sortBy = qs("sortControl")?.value || "volume";
+
+  // Filter markets
+  filteredMarkets = lastMarkets.filter(market => {
+    // Search filter
+    if (searchTerm && !market.question?.toLowerCase().includes(searchTerm)) {
+      return false;
+    }
+
+    // Status filter
+    if (statusFilter === "open" && market.isResolved) return false;
+    if (statusFilter === "closed" && (market.isResolved || market.closeTime < Date.now())) return false;
+    if (statusFilter === "resolved" && !market.isResolved) return false;
+
+    // Liquidity filter
+    const liquidity = parseMarketLiquidity(market);
+    if (liquidityFilter === "high" && liquidity < 1000) return false;
+    if (liquidityFilter === "medium" && (liquidity < 100 || liquidity >= 1000)) return false;
+    if (liquidityFilter === "low" && liquidity >= 100) return false;
+
+    return true;
+  });
+
+  // Sort markets
+  filteredMarkets.sort((a, b) => {
+    switch (sortBy) {
+      case "volume":
+        return parseMarketVolume24h(b) - parseMarketVolume24h(a);
+      case "liquidity":
+        return parseMarketLiquidity(b) - parseMarketLiquidity(a);
+      case "probability":
+        return parseMarketProbability(b) - parseMarketProbability(a);
+      case "created":
+        return (b.createdTime || 0) - (a.createdTime || 0);
+      case "trending":
+        // Trending = volume × recency score
+        const recencyA = Math.max(0, 1 - (Date.now() - (a.createdTime || 0)) / (7 * 24 * 60 * 60 * 1000));
+        const recencyB = Math.max(0, 1 - (Date.now() - (b.createdTime || 0)) / (7 * 24 * 60 * 60 * 1000));
+        const trendScoreA = parseMarketVolume24h(a) * (1 + recencyA * 2);
+        const trendScoreB = parseMarketVolume24h(b) * (1 + recencyB * 2);
+        return trendScoreB - trendScoreA;
+      default:
+        return 0;
+    }
+  });
+
+  // Render filtered markets
+  renderRows(
+    "marketsTable",
+    filteredMarkets,
+    (m, idx) => `<tr class="market-row" data-index="${idx}">
+      <td>${escapeHtml(short(m.id, 14))}</td>
+      <td>${escapeHtml(short(m.question, 86))}</td>
+      <td>${fmtNum(parseMarketProbability(m), 3)}</td>
+      <td>${fmtNum(parseMarketLiquidity(m), 0)}</td>
+      <td>${fmtNum(parseMarketVolume24h(m), 0)}</td>
+      <td>${escapeHtml(m.outcomeType || "-")}</td>
+      <td>${m.isResolved ? "yes" : "no"}</td>
+    </tr>`
+  );
+
+  showMarketRaw(filteredMarkets.length ? 0 : -1);
+  bindMarketRowClicks();
+
+  // Update search count
+  const countEl = qs("searchResultCount");
+  if (countEl) {
+    if (searchTerm || statusFilter !== "all" || liquidityFilter !== "all") {
+      countEl.textContent = `${filteredMarkets.length} of ${lastMarkets.length}`;
+      countEl.style.display = "block";
+    } else {
+      countEl.style.display = "none";
+    }
+  }
+}
+
+function renderBreakingNews() {
+  const now = Date.now();
+  const oneDayAgo = now - (24 * 60 * 60 * 1000);
+  
+  const breakingMarkets = lastMarkets
+    .filter(m => !m.isResolved && m.createdTime && m.createdTime > oneDayAgo)
+    .sort((a, b) => b.createdTime - a.createdTime)
+    .slice(0, 6);
+
+  const section = qs("breakingNewsSection");
+  const list = qs("breakingNewsList");
+  
+  if (!section || !list) return;
+
+  if (breakingMarkets.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+  list.innerHTML = breakingMarkets.map(m => {
+    const prob = parseMarketProbability(m);
+    const volume = parseMarketVolume24h(m);
+    const hoursAgo = Math.floor((now - m.createdTime) / (60 * 60 * 1000));
+    const timeText = hoursAgo < 1 ? "Just now" : `${hoursAgo}h ago`;
+    
+    return `<div class="breaking-news-item" onclick="window.open('https://manifold.markets/${m.creatorUsername}/${m.slug}', '_blank')">
+      <div class="breaking-news-question">${escapeHtml(short(m.question, 120))}</div>
+      <div class="breaking-news-meta">
+        <div class="breaking-news-prob">${fmtNum(prob, 1)}%</div>
+        <div class="breaking-news-time">
+          <i class="fas fa-clock"></i> ${timeText}
+        </div>
+        <div class="breaking-news-volume">
+          <i class="fas fa-chart-line"></i> M$${fmtNum(volume, 0)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initMarketDiscoveryControls() {
+  const searchInput = qs("marketSearchInput");
+  const statusFilter = qs("statusFilter");
+  const liquidityFilter = qs("liquidityFilter");
+  const sortControl = qs("sortControl");
+  const clearBtn = qs("clearFilters");
+
+  // Search with debouncing
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        applyMarketFiltersAndSort();
+      }, 300);
+    });
+  }
+
+  // Filters
+  if (statusFilter) {
+    statusFilter.addEventListener("change", applyMarketFiltersAndSort);
+  }
+  if (liquidityFilter) {
+    liquidityFilter.addEventListener("change", applyMarketFiltersAndSort);
+  }
+  if (sortControl) {
+    sortControl.addEventListener("change", applyMarketFiltersAndSort);
+  }
+
+  // Clear filters
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      if (statusFilter) statusFilter.value = "open";
+      if (liquidityFilter) liquidityFilter.value = "all";
+      if (sortControl) sortControl.value = "volume";
+      applyMarketFiltersAndSort();
+    });
   }
 }
 
@@ -908,6 +1073,206 @@ async function loadDashboard() {
   }
 }
 
+// Trade Panel Functions
+let currentTradeMarket = null;
+let currentTradeType = "buy";
+
+function openTradePanel(market) {
+  currentTradeMarket = market;
+  const panel = qs("tradePanel");
+  const info = qs("tradeMarketInfo");
+  
+  if (!panel || !market) return;
+
+  // Populate market info
+  const prob = parseMarketProbability(market);
+  const liquidity = parseMarketLiquidity(market);
+  const volume = parseMarketVolume24h(market);
+
+  info.innerHTML = `
+    <div class="trade-market-question">${escapeHtml(market.question)}</div>
+    <div class="trade-market-meta">
+      <div><strong>Probability:</strong> ${fmtNum(prob, 1)}%</div>
+      <div><strong>Liquidity:</strong> M$${fmtNum(liquidity, 0)}</div>
+      <div><strong>Volume 24h:</strong> M$${fmtNum(volume, 0)}</div>
+    </div>
+  `;
+
+  // Reset form
+  qs("tradeAmount").value = "";
+  qs("tradeOutcome").value = "YES";
+  qs("tradePreview").style.display = "none";
+  qs("tradeStatus").textContent = "";
+
+  panel.style.display = "flex";
+}
+
+function closeTradePanel() {
+  const panel = qs("tradePanel");
+  if (panel) panel.style.display = "none";
+  currentTradeMarket = null;
+}
+
+function openQuickSellPanel(holdingIndex) {
+  const holding = lastHoldings[holdingIndex];
+  if (!holding || !holding.marketId) {
+    alert("Cannot find market for this holding");
+    return;
+  }
+
+  // Find the market in lastMarkets
+  const market = lastMarkets.find(m => m.id === holding.marketId);
+  if (!market) {
+    alert("Market not loaded. Please refresh markets first.");
+    return;
+  }
+
+  // Open trade panel in sell mode
+  currentTradeType = "sell";
+  openTradePanel(market);
+  
+  // Pre-fill with sell details
+  qs("tradeSellBtn")?.click();
+  qs("tradeOutcome").value = holding.outcome === "YES" ? "YES" : "NO";
+  qs("tradeAmount").value = Math.floor(holding.shares * holding.avgPrice).toString();
+}
+
+function setTradeType(type) {
+  currentTradeType = type;
+  const buyBtn = qs("tradeBuyBtn");
+  const sellBtn = qs("tradeSellBtn");
+  
+  if (buyBtn && sellBtn) {
+    buyBtn.classList.toggle("active", type === "buy");
+    sellBtn.classList.toggle("active", type === "sell");
+  }
+}
+
+function calculateTradePreview() {
+  if (!currentTradeMarket) return;
+
+  const amount = parseFloat(qs("tradeAmount")?.value || "0");
+  const outcome = qs("tradeOutcome")?.value || "YES";
+  
+  if (amount <= 0) {
+    qs("tradePreview").style.display = "none";
+    return;
+  }
+
+  // Simple CPMM calculation (approximate)
+  const currentProb = parseMarketProbability(currentTradeMarket) / 100;
+  const isBuy = currentTradeType === "buy";
+  const isYes = outcome === "YES";
+
+  // Rough estimate of shares (would need full CPMM math from backend)
+  let avgPrice, expectedShares, potentialProfit, newProb;
+
+  if (isBuy) {
+    if (isYes) {
+      avgPrice = currentProb;
+      expectedShares = amount / avgPrice;
+      potentialProfit = expectedShares * (1 - avgPrice);
+      newProb = currentProb + (amount / 10000); // Simplified impact
+    } else {
+      avgPrice = 1 - currentProb;
+      expectedShares = amount / avgPrice;
+      potentialProfit = expectedShares * (1 - avgPrice);
+      newProb = currentProb - (amount / 10000);
+    }
+  } else {
+    avgPrice = isYes ? currentProb : (1 - currentProb);
+    expectedShares = amount / avgPrice;
+    potentialProfit = -amount * 0.02; // Selling has negative profit estimate
+    newProb = currentProb;
+  }
+
+  // Display preview
+  qs("previewShares").textContent = fmtNum(expectedShares, 2);
+  qs("previewPrice").textContent = `M$${fmtNum(avgPrice, 3)}`;
+  qs("previewProfit").textContent = `M$${fmtNum(potentialProfit, 2)}`;
+  qs("previewProfit").className = potentialProfit >= 0 ? "gain" : "loss";
+  qs("previewNewProb").textContent = `${fmtNum(Math.max(0.01, Math.min(0.99, newProb)) * 100, 1)}%`;
+  qs("tradePreview").style.display = "block";
+}
+
+async function executeTrade(event) {
+  event.preventDefault();
+  
+  const status = qs("tradeStatus");
+  const amount = parseFloat(qs("tradeAmount")?.value || "0");
+  const outcome = qs("tradeOutcome")?.value || "YES";
+  const account = loadSavedAccount();
+
+  if (!account?.apiKey) {
+    if (status) status.textContent = "Error: No API key configured";
+    return;
+  }
+
+  if (!currentTradeMarket || amount <= 0) {
+    if (status) status.textContent = "Error: Invalid trade parameters";
+    return;
+  }
+
+  if (status) status.textContent = "Executing trade...";
+
+  try {
+    const response = await fetch(`${MANIFOLD_BASE_URL}/v0/bet`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Key ${account.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contractId: currentTradeMarket.id,
+        amount: amount,
+        outcome: outcome
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || `Trade failed (${response.status})`);
+    }
+
+    const result = await response.json();
+    if (status) status.textContent = `✅ Trade executed! Shares: ${fmtNum(result.shares || 0, 2)}`;
+    
+    // Refresh data after trade
+    setTimeout(() => {
+      loadAllData(account.apiKey);
+      closeTradePanel();
+    }, 2000);
+
+  } catch (error) {
+    if (status) status.textContent = `❌ Error: ${error.message}`;
+  }
+}
+
+function initTradePanel() {
+  // Close buttons
+  qs("tradePanelClose")?.addEventListener("click", closeTradePanel);
+  qs("tradePanelOverlay")?.addEventListener("click", closeTradePanel);
+
+  // Trade type buttons
+  qs("tradeBuyBtn")?.addEventListener("click", () => setTradeType("buy"));
+  qs("tradeSellBtn")?.addEventListener("click", () => setTradeType("sell"));
+
+  // Preview button
+  qs("tradePreviewBtn")?.addEventListener("click", calculateTradePreview);
+
+  // Form submission
+  qs("tradeForm")?.addEventListener("submit", executeTrade);
+
+  // Auto-preview on amount change
+  qs("tradeAmount")?.addEventListener("input", () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(calculateTradePreview, 500);
+  });
+}
+
+// Make openQuickSellPanel available globally
+window.openQuickSellPanel = openQuickSellPanel;
+
 function initAccountFlow() {
   const form = qs("accountForm");
   const disconnectBtn = qs("disconnectBtn");
@@ -956,6 +1321,8 @@ qs("refreshMarketsBtn")?.addEventListener("click", async () => {
 initAccountFlow();
 initRangeControls();
 initChartHover();
+initMarketDiscoveryControls();
+initTradePanel();
 
 const savedAccount = loadSavedAccount();
 if (savedAccount?.apiKey) {

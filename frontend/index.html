@@ -142,6 +142,7 @@
               <th>Avg Price</th>
               <th>Value</th>
               <th>PnL</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="holdingsTable"></tbody>
@@ -149,20 +150,102 @@
       </div>
     </section>
 
+    <!-- Arbitrage Opportunities Section -->
+    <section class="card arb-card" id="arbSection" style="display: none;">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-gem"></i> Arbitrage Opportunities</h2>
+        <span class="badge badge-profit">
+          <i class="fas fa-dollar-sign"></i> Risk-Free Profit
+        </span>
+      </div>
+      <p class="muted">Guaranteed profit opportunities detected by the backend scanner.</p>
+      <div id="arbList" class="arb-grid"></div>
+      <p id="arbStatus" class="status">No arbitrage opportunities detected.</p>
+    </section>
+
+    <!-- Breaking News Section -->
+    <section class="card breaking-news-card" id="breakingNewsSection" style="display: none;">
+      <div class="section-header-inline">
+        <h2><i class="fas fa-bolt"></i> Breaking News</h2>
+        <span class="badge badge-live">
+          <span class="pulse-dot"></span> New Markets (24h)
+        </span>
+      </div>
+      <div id="breakingNewsList" class="breaking-news-grid"></div>
+    </section>
+
+    <!-- Market Explorer Section -->
     <section class="card" id="marketSection">
       <div class="toolbar-inline">
         <div>
           <h2><i class="fas fa-chart-bar"></i> Market Explorer</h2>
-          <p class="muted">Live market feed with full raw payload inspector.</p>
+          <p class="muted">Find profitable opportunities with search, filters & sorting.</p>
         </div>
         <div class="inline-actions">
           <label class="field-inline">
             <span>Limit</span>
             <input id="marketLimitInput" type="number" min="10" max="1000" value="120">
           </label>
-          <button id="refreshMarketsBtn" class="btn" type="button">Refresh Markets</button>
+          <button id="refreshMarketsBtn" class="btn" type="button">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
         </div>
       </div>
+
+      <!-- Market Discovery Controls -->
+      <div class="market-controls">
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            id="marketSearchInput" 
+            class="market-search" 
+            placeholder="Search markets by question..."
+            autocomplete="off"
+          >
+          <span id="searchResultCount" class="search-count"></span>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="filters-row">
+          <label class="filter-group">
+            <i class="fas fa-filter"></i>
+            <select id="statusFilter" class="filter-select">
+              <option value="all">All Status</option>
+              <option value="open" selected>Open Only</option>
+              <option value="closed">Closed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </label>
+
+          <label class="filter-group">
+            <i class="fas fa-tint"></i>
+            <select id="liquidityFilter" class="filter-select">
+              <option value="all">All Liquidity</option>
+              <option value="high">High (>M$1000)</option>
+              <option value="medium">Medium (M$100-1000)</option>
+              <option value="low">Low (<M$100)</option>
+            </select>
+          </label>
+
+          <label class="filter-group">
+            <i class="fas fa-sort"></i>
+            <select id="sortControl" class="filter-select">
+              <option value="volume">Volume (High to Low)</option>
+              <option value="liquidity">Liquidity (High to Low)</option>
+              <option value="probability">Probability (High to Low)</option>
+              <option value="created">Recently Created</option>
+              <option value="trending">Trending (Volume × Recency)</option>
+            </select>
+          </label>
+
+          <button id="clearFilters" class="btn-filter-clear" type="button">
+            <i class="fas fa-times"></i> Clear
+          </button>
+        </div>
+      </div>
+
       <p id="marketStatusText" class="status">Markets: loading...</p>
       <div class="table-wrap">
         <table>
@@ -237,6 +320,89 @@
       </div>
     </section>
   </main>
+
+  <!-- Trade Execution Panel (Slide-out) -->
+  <div id="tradePanel" class="trade-panel" style="display: none;">
+    <div class="trade-panel-overlay" id="tradePanelOverlay"></div>
+    <div class="trade-panel-content">
+      <div class="trade-panel-header">
+        <h2><i class="fas fa-exchange-alt"></i> Execute Trade</h2>
+        <button class="trade-panel-close" id="tradePanelClose" type="button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="trade-panel-body">
+        <div id="tradeMarketInfo" class="trade-market-info"></div>
+
+        <form id="tradeForm" class="trade-form">
+          <label class="trade-label">
+            <span>Trade Type</span>
+            <div class="trade-type-buttons">
+              <button type="button" class="trade-type-btn active" data-type="buy" id="tradeBuyBtn">
+                <i class="fas fa-arrow-up"></i> Buy
+              </button>
+              <button type="button" class="trade-type-btn" data-type="sell" id="tradeSellBtn">
+                <i class="fas fa-arrow-down"></i> Sell
+              </button>
+            </div>
+          </label>
+
+          <label class="trade-label">
+            <span>Amount (Mana)</span>
+            <input 
+              type="number" 
+              id="tradeAmount" 
+              class="trade-input" 
+              placeholder="100"
+              min="1"
+              step="1"
+              required
+            >
+          </label>
+
+          <label class="trade-label">
+            <span>Outcome</span>
+            <select id="tradeOutcome" class="trade-select">
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+            </select>
+          </label>
+
+          <div id="tradePreview" class="trade-preview" style="display: none;">
+            <h3>Order Preview</h3>
+            <div class="trade-preview-row">
+              <span>Expected Shares:</span>
+              <strong id="previewShares">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>Average Price:</span>
+              <strong id="previewPrice">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>Potential Profit:</span>
+              <strong id="previewProfit" class="gain">-</strong>
+            </div>
+            <div class="trade-preview-row">
+              <span>New Probability:</span>
+              <strong id="previewNewProb">-</strong>
+            </div>
+          </div>
+
+          <div class="trade-actions">
+            <button type="button" id="tradePreviewBtn" class="btn btn-secondary">
+              <i class="fas fa-calculator"></i> Preview Order
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-check"></i> Confirm Trade
+            </button>
+          </div>
+
+          <p id="tradeStatus" class="status"></p>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
