@@ -73,6 +73,120 @@
       </div>
     </section>
 
+    <!-- Bot Control & Analytics Row -->
+    <div class="two-col">
+      <!-- Bot Control Panel -->
+      <section class="card bot-control-card">
+        <h2><i class="fas fa-robot"></i> Bot Control</h2>
+        <div class="bot-status-display">
+          <div class="bot-status-indicator" id="botStatusIndicator">
+            <span class="status-dot status-dot-unknown"></span>
+            <div>
+              <div class="status-label">Status</div>
+              <div class="status-value" id="botStatusText">Not Configured</div>
+            </div>
+          </div>
+          <div class="bot-uptime">
+            <i class="fas fa-clock"></i>
+            <span id="botUptime">-</span>
+          </div>
+        </div>
+
+        <div class="bot-controls">
+          <button id="botStartBtn" class="btn btn-success" disabled>
+            <i class="fas fa-play"></i> Start Bot
+          </button>
+          <button id="botStopBtn" class="btn btn-danger" disabled>
+            <i class="fas fa-stop"></i> Stop Bot
+          </button>
+        </div>
+
+        <div class="risk-settings" id="riskSettings">
+          <h3>Risk Settings</h3>
+          <form id="riskForm" class="risk-form">
+            <label class="risk-label">
+              <span>Kelly Multiplier</span>
+              <input type="number" id="kellyMultiplier" min="0.1" max="1.0" step="0.1" value="0.25" class="risk-input">
+              <small>0.25 = Quarter Kelly (conservative)</small>
+            </label>
+            <label class="risk-label">
+              <span>Max Bet Size (M$)</span>
+              <input type="number" id="maxBetSize" min="10" max="1000" step="10" value="100" class="risk-input">
+            </label>
+            <label class="risk-label">
+              <span>Min Edge (%)</span>
+              <input type="number" id="minEdge" min="1" max="20" step="1" value="5" class="risk-input">
+              <small>Only trade when edge > this value</small>
+            </label>
+            <label class="risk-label">
+              <span>Max Drawdown (%)</span>
+              <input type="number" id="maxDrawdown" min="5" max="50" step="5" value="20" class="risk-input">
+              <small>Stop bot if portfolio drops > this %</small>
+            </label>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Performance Analytics -->
+      <section class="card analytics-card">
+        <h2><i class="fas fa-chart-line"></i> Performance Analytics</h2>
+        <div class="analytics-grid">
+          <div class="analytic-metric">
+            <div class="analytic-label">Win Rate</div>
+            <div class="analytic-value" id="winRateValue">-</div>
+            <div class="analytic-sublabel">Resolved Profitable</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">ROI</div>
+            <div class="analytic-value" id="roiValue">-</div>
+            <div class="analytic-sublabel">Return on Investment</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">Sharpe Ratio</div>
+            <div class="analytic-value" id="sharpeValue">-</div>
+            <div class="analytic-sublabel">Risk-Adjusted Returns</div>
+          </div>
+          <div class="analytic-metric">
+            <div class="analytic-label">Avg Trade</div>
+            <div class="analytic-value" id="avgTradeValue">-</div>
+            <div class="analytic-sublabel">Average Profit/Loss</div>
+          </div>
+        </div>
+        <div class="edge-calculator" id="edgeCalculator">
+          <h3><i class="fas fa-calculator"></i> Kelly Edge Calculator</h3>
+          <p class="muted">Calculate optimal bet sizing for detected opportunities</p>
+          <div class="edge-input-group">
+            <label>
+              <span>My Edge (%)</span>
+              <input type="number" id="edgeInput" min="0" max="100" step="1" placeholder="5" class="edge-input">
+            </label>
+            <label>
+              <span>Current Probability (%)</span>
+              <input type="number" id="probInput" min="1" max="99" step="1" placeholder="50" class="edge-input">
+            </label>
+            <button id="calculateEdgeBtn" class="btn btn-secondary">Calculate</button>
+          </div>
+          <div id="edgeResults" class="edge-results" style="display: none;">
+            <div class="edge-result-row">
+              <span>Kelly Percentage:</span>
+              <strong id="kellyPercent">-</strong>
+            </div>
+            <div class="edge-result-row">
+              <span>Recommended Bet:</span>
+              <strong id="recommendedBet">-</strong>
+            </div>
+            <div class="edge-result-row">
+              <span>Expected Value:</span>
+              <strong id="expectedValue" class="gain">-</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <section class="card metrics" id="dashboardSection">
       <div class="section-header">
         <p class="eyebrow"><i class="fas fa-wallet"></i> Portfolio Overview</p>

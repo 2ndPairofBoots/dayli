@@ -159,6 +159,9 @@ async function loadAllData(apiKey) {
     apiKey ? loadConnectedSnapshot(apiKey) : Promise.resolve(),
   ]);
   await loadCurrentHoldings(apiKey);
+
+  // Calculate analytics after all data is loaded
+  calculatePerformanceMetrics();
 }
 
 async function fetchCurrentUser(apiKey) {
@@ -1273,6 +1276,198 @@ function initTradePanel() {
 // Make openQuickSellPanel available globally
 window.openQuickSellPanel = openQuickSellPanel;
 
+// Week 3: Bot Control & Analytics
+let botSettings = {
+  kellyMultiplier: 0.25,
+  maxBetSize: 100,
+  minEdge: 5,
+  maxDrawdown: 20
+};
+
+let botStatus = {
+  running: false,
+  startTime: null
+};
+
+function updateBotStatusDisplay() {
+  const indicator = qs("botStatusIndicator");
+  const statusText = qs("botStatusText");
+  const uptimeEl = qs("botUptime");
+  const startBtn = qs("botStartBtn");
+  const stopBtn = qs("botStopBtn");
+
+  if (!indicator || !statusText) return;
+
+  const statusDot = indicator.querySelector(".status-dot");
+  if (statusDot) {
+    statusDot.className = "status-dot";
+    if (botStatus.running) {
+      statusDot.classList.add("status-dot-running");
+      statusText.textContent = "Running";
+      statusText.style.color = "var(--good)";
+    } else {
+      statusDot.classList.add("status-dot-stopped");
+      statusText.textContent = "Stopped";
+      statusText.style.color = "var(--danger)";
+    }
+  }
+
+  // Update uptime
+  if (uptimeEl) {
+    if (botStatus.running && botStatus.startTime) {
+      const elapsed = Date.now() - botStatus.startTime;
+      const hours = Math.floor(elapsed / (60 * 60 * 1000));
+      const minutes = Math.floor((elapsed % (60 * 60 * 1000)) / (60 * 1000));
+      uptimeEl.textContent = `${hours}h ${minutes}m`;
+    } else {
+      uptimeEl.textContent = "-";
+    }
+  }
+
+  // Update button states
+  if (startBtn && stopBtn) {
+    startBtn.disabled = botStatus.running;
+    stopBtn.disabled = !botStatus.running;
+  }
+}
+
+function startBot() {
+  botStatus.running = true;
+  botStatus.startTime = Date.now();
+  updateBotStatusDisplay();
+  alert("Bot started! Note: This is frontend-only. Backend integration required for actual trading.");
+}
+
+function stopBot() {
+  botStatus.running = false;
+  botStatus.startTime = null;
+  updateBotStatusDisplay();
+}
+
+function saveRiskSettings(event) {
+  event.preventDefault();
+  
+  botSettings.kellyMultiplier = parseFloat(qs("kellyMultiplier")?.value || "0.25");
+  botSettings.maxBetSize = parseFloat(qs("maxBetSize")?.value || "100");
+  botSettings.minEdge = parseFloat(qs("minEdge")?.value || "5");
+  botSettings.maxDrawdown = parseFloat(qs("maxDrawdown")?.value || "20");
+
+  // Save to localStorage
+  localStorage.setItem("dayli_bot_settings", JSON.stringify(botSettings));
+
+  alert(`Risk settings saved!\nKelly: ${botSettings.kellyMultiplier}x\nMax Bet: M$${botSettings.maxBetSize}\nMin Edge: ${botSettings.minEdge}%\nMax Drawdown: ${botSettings.maxDrawdown}%`);
+}
+
+function loadRiskSettings() {
+  try {
+    const saved = localStorage.getItem("dayli_bot_settings");
+    if (saved) {
+      botSettings = JSON.parse(saved);
+      qs("kellyMultiplier").value = botSettings.kellyMultiplier;
+      qs("maxBetSize").value = botSettings.maxBetSize;
+      qs("minEdge").value = botSettings.minEdge;
+      qs("maxDrawdown").value = botSettings.maxDrawdown;
+    }
+  } catch (e) {
+    console.error("Failed to load bot settings", e);
+  }
+}
+
+// Analytics Calculations
+function calculatePerformanceMetrics() {
+  // This would ideally use backend data
+  // For now, calculate from holdings and portfolio
+  
+  const totalInvested = snapshotMetrics.invested || 0;
+  const balance = snapshotMetrics.balance || 0;
+  const netWorth = balance + totalInvested;
+  
+  // Simple ROI calculation
+  let roi = 0;
+  if (totalInvested > 0) {
+    const currentValue = lastHoldings.reduce((sum, h) => sum + parseNum(h.value), 0);
+    const profit = currentValue - totalInvested;
+    roi = (profit / totalInvested) * 100;
+  }
+
+  // Win rate (would need resolved bets data from backend)
+  // Placeholder: 0%
+  const winRate = 0;
+
+  // Sharpe ratio (would need daily returns data)
+  // Placeholder
+  const sharpe = 0;
+
+  // Average trade (would need bet history)
+  const avgTrade = lastHoldings.length > 0 
+    ? lastHoldings.reduce((sum, h) => sum + parseNum(h.pnl), 0) / lastHoldings.length 
+    : 0;
+
+  // Update display
+  qs("winRateValue").textContent = `${fmtNum(winRate, 1)}%`;
+  qs("roiValue").textContent = `${roi >= 0 ? "+" : ""}${fmtNum(roi, 2)}%`;
+  qs("roiValue").className = `analytic-value ${roi >= 0 ? "gain" : "loss"}`;
+  qs("sharpeValue").textContent = fmtNum(sharpe, 2);
+  qs("avgTradeValue").textContent = `M$${fmtNum(avgTrade, 2)}`;
+  qs("avgTradeValue").className = `analytic-value ${avgTrade >= 0 ? "gain" : "loss"}`;
+}
+
+// Kelly Edge Calculator
+function calculateKellyEdge() {
+  const edge = parseFloat(qs("edgeInput")?.value || "0") / 100;
+  const currentProb = parseFloat(qs("probInput")?.value || "50") / 100;
+  
+  if (edge <= 0 || currentProb <= 0 || currentProb >= 1) {
+    alert("Please enter valid edge and probability values");
+    return;
+  }
+
+  // Kelly formula: f* = (bp - q) / b
+  // where b = odds, p = probability of win, q = probability of loss
+  const myProb = currentProb + edge;
+  const odds = (1 - currentProb) / currentProb;
+  const kellyFraction = (odds * myProb - (1 - myProb)) / odds;
+  const kellyPercent = Math.max(0, Math.min(1, kellyFraction)) * 100;
+
+  // Apply Kelly multiplier from settings
+  const adjustedKelly = kellyPercent * botSettings.kellyMultiplier;
+  const bankroll = (snapshotMetrics.balance || 1000);
+  const recommendedBet = Math.min(
+    (adjustedKelly / 100) * bankroll,
+    botSettings.maxBetSize
+  );
+
+  // Expected value
+  const expectedValue = recommendedBet * edge;
+
+  // Display results
+  qs("kellyPercent").textContent = `${fmtNum(kellyPercent, 2)}% (${fmtNum(adjustedKelly, 2)}% adjusted)`;
+  qs("recommendedBet").textContent = `M$${fmtNum(recommendedBet, 2)}`;
+  qs("expectedValue").textContent = `+M$${fmtNum(expectedValue, 2)}`;
+  qs("edgeResults").style.display = "block";
+}
+
+function initBotControls() {
+  // Load saved settings
+  loadRiskSettings();
+
+  // Bot start/stop
+  qs("botStartBtn")?.addEventListener("click", startBot);
+  qs("botStopBtn")?.addEventListener("click", stopBot);
+
+  // Risk settings form
+  qs("riskForm")?.addEventListener("submit", saveRiskSettings);
+
+  // Edge calculator
+  qs("calculateEdgeBtn")?.addEventListener("click", calculateKellyEdge);
+
+  // Update bot status display
+  updateBotStatusDisplay();
+
+  // Update bot status every minute
+  setInterval(updateBotStatusDisplay, 60000);
+}
+
 function initAccountFlow() {
   const form = qs("accountForm");
   const disconnectBtn = qs("disconnectBtn");
@@ -1323,6 +1518,7 @@ initRangeControls();
 initChartHover();
 initMarketDiscoveryControls();
 initTradePanel();
+initBotControls();
 
 const savedAccount = loadSavedAccount();
 if (savedAccount?.apiKey) {
